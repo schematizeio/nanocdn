@@ -67,7 +67,7 @@ $uploadUrl = rtrim($baseUrl, '/') . '/api/upload';
                 <td><?= htmlspecialchars($k['name'] ?? '') ?></td>
                 <td><?= $k['last_used_at'] ? date('d/m/Y H:i', strtotime($k['last_used_at'])) : '-' ?></td>
                 <td>
-                    <form method="post" action="<?= $baseUrl ?>/admin/tenants/<?= $tenant['id'] ?>/keys/delete/<?= (int)$k['id'] ?>" style="display:inline;" onsubmit="return confirm('Revogar esta API Key?');">
+                    <form method="post" action="<?= $baseUrl ?>/admin/tenants/<?= htmlspecialchars($tenant['uuid']) ?>/keys/delete/<?= (int)$k['id'] ?>" style="display:inline;" onsubmit="return confirm('Revogar esta API Key?');">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\NanoCDN\Auth::csrfToken()) ?>">
                         <button type="submit" class="admin-btn admin-btn-sm admin-btn-danger">Revogar</button>
                     </form>
@@ -79,7 +79,7 @@ $uploadUrl = rtrim($baseUrl, '/') . '/api/upload';
 
     <div class="admin-card">
         <h2>Arquivos</h2>
-        <p><a href="<?= $baseUrl ?>/admin/tenants/<?= $tenant['id'] ?>/files" class="admin-btn admin-btn-sm">Ver todos</a> <?= isset($totalFiles) && $totalFiles ? (int)$totalFiles . ' arquivo(s)' : '' ?></p>
+        <p><a href="<?= $baseUrl ?>/admin/tenants/<?= htmlspecialchars($tenant['uuid']) ?>/files" class="admin-btn admin-btn-sm">Ver todos</a> <?= isset($totalFiles) && $totalFiles ? (int)$totalFiles . ' arquivo(s)' : '' ?></p>
         <?php if (isset($totalPages) && $totalPages > 1): ?>
         <p class="admin-breadcrumb">Página <?= (int)$page ?> de <?= $totalPages ?>. <?php if ($page > 1): ?><a href="?page=<?= $page - 1 ?>">← Anterior</a><?php endif; ?> <?php if (isset($page) && $page < $totalPages): ?><a href="?page=<?= $page + 1 ?>">Próxima →</a><?php endif; ?></p>
         <?php endif; ?>

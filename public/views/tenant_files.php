@@ -11,7 +11,7 @@ $baseUrl = \NanoCDN\base_url();
 </head>
 <body class="admin">
     <?php require __DIR__ . '/_admin_nav.php'; ?>
-    <p class="admin-breadcrumb"><a href="<?= $baseUrl ?>/admin">Tenants</a> → <a href="<?= $baseUrl ?>/admin/tenants/<?= $tenant['id'] ?>"><?= htmlspecialchars($tenant['name']) ?></a> → Arquivos</p>
+    <p class="admin-breadcrumb"><a href="<?= $baseUrl ?>/admin">Tenants</a> → <a href="<?= $baseUrl ?>/admin/tenants/<?= htmlspecialchars($tenant['uuid']) ?>"><?= htmlspecialchars($tenant['name']) ?></a> → Arquivos</p>
     <div class="admin-card">
         <h1>Arquivos – <?= htmlspecialchars($tenant['name']) ?></h1>
         <?php if (isset($totalFiles) && $totalFiles > 0): ?>

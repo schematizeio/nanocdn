@@ -14,6 +14,14 @@ if (!is_file($helpersPath)) {
 }
 require $helpersPath;
 
+// Aliases globais para arquivos que chamam redirect/base_url sem namespace (ex.: admin em deploy antigo)
+if (!function_exists('redirect')) {
+    function redirect($url, $code = 302) { \NanoCDN\redirect($url, $code); }
+}
+if (!function_exists('base_url')) {
+    function base_url($path = '') { return \NanoCDN\base_url($path); }
+}
+
 $databasePath = NANOCDN_ROOT . '/src/Database.php';
 if (!is_file($databasePath)) {
     http_response_code(500);

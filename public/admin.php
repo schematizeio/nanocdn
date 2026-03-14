@@ -19,7 +19,7 @@ $path = '/' . trim($path, '/');
 
 if ($path === '/login') {
     if (Auth::check()) {
-        redirect(base_url('admin'));
+        \NanoCDN\redirect(\NanoCDN\base_url('admin'));
     }
     $error = '';
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -29,7 +29,7 @@ if ($path === '/login') {
             $email = trim($_POST['email'] ?? '');
             $pass = $_POST['password'] ?? '';
             if (Auth::login($email, $pass)) {
-                redirect(base_url('admin'));
+                \NanoCDN\redirect(\NanoCDN\base_url('admin'));
             }
             $error = 'E-mail ou senha inválidos.';
         }
@@ -40,7 +40,7 @@ if ($path === '/login') {
 
 if ($path === '/logout') {
     Auth::logout();
-    redirect(base_url('admin/login'));
+    \NanoCDN\redirect(\NanoCDN\base_url('admin/login'));
 }
 
 Auth::requireAdmin();
@@ -129,6 +129,9 @@ if ($path === '/' || $path === '') {
     exit;
 }
 
+// UUID do tenant: 8-4-4-4-12 hex
+$uuidRegex = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
+
 if (preg_match('#^/tenants/new$#', $path)) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
         $name = trim($_POST['name'] ?? '');
@@ -136,26 +139,27 @@ if (preg_match('#^/tenants/new$#', $path)) {
         if ($name !== '') {
             $t = Tenant::create($name, $conversion);
             $keyData = Tenant::createApiKey($t['id'], 'Default');
-            redirect(base_url('admin/tenants/' . $t['id'] . '?new_key=' . urlencode($keyData['key'])));
+            \NanoCDN\redirect(\NanoCDN\base_url('admin/tenants/' . $t['uuid'] . '?new_key=' . urlencode($keyData['key'])));
         }
     }
     require __DIR__ . '/views/tenant_form.php';
     exit;
 }
 
-if (preg_match('#^/tenants/(\d+)$#', $path, $m)) {
-    $tenantId = (int) $m[1];
-    $tenant = Tenant::getById($tenantId);
+if (preg_match('#^/tenants/(' . $uuidRegex . ')$#', $path, $m)) {
+    $tenantUuid = $m[1];
+    $tenant = Tenant::getByUuid($tenantUuid);
     if (!$tenant) {
-        header('Location: ' . base_url('admin'));
+        header('Location: ' . \NanoCDN\base_url('admin'));
         exit;
     }
+    $tenantId = (int) $tenant['id'];
     $newKey = $_GET['new_key'] ?? null;
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
         if (isset($_POST['action'])) {
             if ($_POST['action'] === 'regenerate_key') {
                 Tenant::createApiKey($tenantId, 'Generated ' . date('Y-m-d H:i'));
-                redirect(base_url('admin/tenants/' . $tenantId));
+                \NanoCDN\redirect(\NanoCDN\base_url('admin/tenants/' . $tenantUuid));
             }
             if ($_POST['action'] === 'update') {
                 Tenant::update($tenantId, [
@@ -163,7 +167,7 @@ if (preg_match('#^/tenants/(\d+)$#', $path, $m)) {
                     'active' => isset($_POST['active']) ? 1 : 0,
                     'conversion_enabled' => isset($_POST['conversion_enabled']) ? 1 : 0,
                 ]);
-                redirect(base_url('admin/tenants/' . $tenantId));
+                \NanoCDN\redirect(\NanoCDN\base_url('admin/tenants/' . $tenantUuid));
             }
         }
     }
@@ -178,12 +182,12 @@ if (preg_match('#^/tenants/(\d+)$#', $path, $m)) {
     exit;
 }
 
-if (preg_match('#^/tenants/(\d+)/files$#', $path, $m)) {
-    $tenantId = (int) $m[1];
-    $tenant = Tenant::getById($tenantId);
+if (preg_match('#^/tenants/(' . $uuidRegex . ')/files$#', $path, $m)) {
+    $tenant = Tenant::getByUuid($m[1]);
     if (!$tenant) {
-        redirect(base_url('admin'));
+        \NanoCDN\redirect(\NanoCDN\base_url('admin'));
     }
+    $tenantId = (int) $tenant['id'];
     $page = max(1, (int) ($_GET['page'] ?? 1));
     $perPage = 30;
     $offset = ($page - 1) * $perPage;
@@ -194,13 +198,14 @@ if (preg_match('#^/tenants/(\d+)/files$#', $path, $m)) {
     exit;
 }
 
-if (preg_match('#^/tenants/(\d+)/keys/delete/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
-    $tenantId = (int) $m[1];
-    $keyId = (int) $m[2];
-    if (Tenant::revokeApiKey($keyId, $tenantId)) {
-        redirect(base_url('admin/tenants/' . $tenantId));
+if (preg_match('#^/tenants/(' . $uuidRegex . ')/keys/delete/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+    $tenant = Tenant::getByUuid($m[1]);
+    if ($tenant) {
+        $keyId = (int) $m[2];
+        Tenant::revokeApiKey($keyId, (int) $tenant['id']);
     }
-    redirect(base_url('admin/tenants/' . $tenantId));
+    $redirectUuid = $tenant['uuid'] ?? $m[1];
+    \NanoCDN\redirect(\NanoCDN\base_url('admin/tenants/' . $redirectUuid));
 }
 
 if (preg_match('#^/files/delete/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
@@ -208,9 +213,10 @@ if (preg_match('#^/files/delete/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD
     $file = Database::fetchOne('SELECT tenant_id FROM files WHERE id = ?', [$fileId]);
     if ($file) {
         FileManager::delete($fileId);
-        redirect(base_url('admin/tenants/' . $file['tenant_id']));
+        $t = Tenant::getById((int) $file['tenant_id']);
+        \NanoCDN\redirect(\NanoCDN\base_url('admin/tenants/' . ($t['uuid'] ?? $file['tenant_id'])));
     }
-    redirect(base_url('admin'));
+    \NanoCDN\redirect(\NanoCDN\base_url('admin'));
 }
 
 require __DIR__ . '/views/admin_dashboard.php';

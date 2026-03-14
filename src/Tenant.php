@@ -19,9 +19,10 @@ class Tenant
         return Database::fetchOne('SELECT * FROM tenants WHERE id = ?', [$id]);
     }
 
+    /** @param string $uuid UUID do tenant (usado em URLs). Admin pode ver inativos. */
     public static function getByUuid(string $uuid): ?array
     {
-        return Database::fetchOne('SELECT * FROM tenants WHERE uuid = ? AND active = 1', [$uuid]);
+        return Database::fetchOne('SELECT * FROM tenants WHERE uuid = ?', [$uuid]);
     }
 
     public static function getByApiKey(string $apiKey): ?array

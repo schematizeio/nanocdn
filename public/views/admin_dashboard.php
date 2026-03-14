@@ -38,8 +38,8 @@ $totalFiles = (int)($totalFiles['n'] ?? 0);
                     <td><?= (int)($t['file_count'] ?? 0) ?></td>
                     <td><?= !empty($t['conversion_enabled']) ? 'Sim' : 'Não' ?></td>
                     <td>
-                        <a href="<?= $base ?>/admin/tenants/<?= (int)$t['id'] ?>" class="admin-btn admin-btn-sm">Editar</a>
-                        <a href="<?= $base ?>/admin/tenants/<?= (int)$t['id'] ?>/files" class="admin-btn admin-btn-sm">Arquivos</a>
+                        <a href="<?= $base ?>/admin/tenants/<?= htmlspecialchars($t['uuid']) ?>" class="admin-btn admin-btn-sm">Editar</a>
+                        <a href="<?= $base ?>/admin/tenants/<?= htmlspecialchars($t['uuid']) ?>/files" class="admin-btn admin-btn-sm">Arquivos</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

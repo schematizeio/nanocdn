@@ -76,9 +76,11 @@ class FileManager
 
     public static function listByTenant(int $tenantId, int $limit = 100, int $offset = 0): array
     {
+        $limit = max(1, min(1000, $limit));
+        $offset = max(0, $offset);
         $rows = Database::fetchAll(
-            'SELECT id, file_uuid, original_name, mime_type, extension, size_bytes, path_original, created_at FROM files WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
-            [$tenantId, $limit, $offset]
+            'SELECT id, file_uuid, original_name, mime_type, extension, size_bytes, path_original, created_at FROM files WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ' . $limit . ' OFFSET ' . $offset,
+            [$tenantId]
         );
         foreach ($rows as &$r) {
             $r['variants'] = self::getVariants((int) $r['id']);
