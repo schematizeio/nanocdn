@@ -17,7 +17,7 @@ if ($envFile) {
 }
 
 return [
-    'version' => '0.1.0',
+    'version' => '1.0.6',
     'env' => getenv('NANOCDN_ENV') ?: 'development',
     'debug' => filter_var(getenv('NANOCDN_DEBUG') ?: true, FILTER_VALIDATE_BOOLEAN),
     'base_url' => getenv('NANOCDN_BASE_URL') ?: (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') : '') . dirname($_SERVER['SCRIPT_NAME'] ?? ''),
@@ -37,7 +37,7 @@ return [
     ],
 
     'conversion' => [
-        'enabled' => false,
+        'enabled' => false, // true = serviço de conversão disponível; tenants escolhem subconjunto abaixo
         'sizes' => [
             ['w' => 1920, 'h' => 1080],
             ['w' => 1366, 'h' => 1080],

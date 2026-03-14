@@ -43,7 +43,7 @@ class Tenant
         return $row;
     }
 
-    public static function create(string $name, bool $conversionEnabled = false): array
+    public static function create(string $name, bool $conversionEnabled = false, ?array $conversionSizes = null, ?array $conversionFormats = null): array
     {
         $uuid = uuid();
         $slug = slug($name);
@@ -51,16 +51,17 @@ class Tenant
         while (Database::fetchOne('SELECT id FROM tenants WHERE slug = ?', [$slug])) {
             $slug = slug($name) . '-' . (++$i);
         }
+        $sizesJson = self::validateAndEncodeConversionOptions($conversionSizes, $conversionFormats);
         Database::run(
-            'INSERT INTO tenants (uuid, name, slug, active, conversion_enabled) VALUES (?, ?, ?, 1, ?)',
-            [$uuid, $name, $slug, $conversionEnabled ? 1 : 0]
+            'INSERT INTO tenants (uuid, name, slug, active, conversion_enabled, conversion_sizes, conversion_formats) VALUES (?, ?, ?, 1, ?, ?, ?)',
+            [$uuid, $name, $slug, $conversionEnabled ? 1 : 0, $sizesJson['sizes'], $sizesJson['formats']]
         );
         return self::getById((int) Database::lastInsertId());
     }
 
     public static function update(int $id, array $data): bool
     {
-        $allowed = ['name', 'slug', 'active', 'conversion_enabled'];
+        $allowed = ['name', 'slug', 'active', 'conversion_enabled', 'conversion_sizes', 'conversion_formats'];
         $set = [];
         $params = [];
         foreach ($allowed as $k) {
@@ -77,9 +78,26 @@ class Tenant
         return true;
     }
 
+    /** Valida opções do tenant contra as globais e retorna JSON para gravar (sizes e formats). */
+    public static function validateAndEncodeConversionOptions(?array $sizes, ?array $formats): array
+    {
+        $global = \NanoCDN\ImageConverter::getGlobalConversionOptions();
+        $sizesJson = null;
+        if (!empty($sizes) && !empty($global['size_keys'])) {
+            $filtered = array_values(array_intersect($sizes, $global['size_keys']));
+            $sizesJson = $filtered ? json_encode($filtered) : null;
+        }
+        $formatsJson = null;
+        if (!empty($formats) && !empty($global['formats'])) {
+            $filtered = array_values(array_intersect($formats, $global['formats']));
+            $formatsJson = $filtered ? json_encode($filtered) : null;
+        }
+        return ['sizes' => $sizesJson, 'formats' => $formatsJson];
+    }
+
     public static function createApiKey(int $tenantId, string $name = 'Default'): array
     {
-        $raw = 'nc_' . bin2hex(random_bytes(24));
+        $raw = 'nc_' . bin2hex(random_bytes(32));
         $keyHash = hash('sha256', $raw);
         $keyPrefix = substr($raw, 0, 8);
         Database::run(

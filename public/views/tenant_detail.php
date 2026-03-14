@@ -26,6 +26,14 @@ $uploadUrl = rtrim($baseUrl, '/') . '/api/upload';
     <script>document.getElementById('copy-key-btn').onclick=function(){navigator.clipboard.writeText(document.getElementById('new-api-key').innerText).then(function(){this.textContent='Copiado!';}.bind(this));};</script>
     <?php endif; ?>
 
+    <?php
+$globalConv = $globalConversion ?? \NanoCDN\ImageConverter::getGlobalConversionOptions();
+$hasConvBase = !empty($globalConv['enabled']) && !empty($globalConv['sizes']) && !empty($globalConv['formats']);
+$tenantSizes = $tenantConversionSizes ?? [];
+$tenantFormats = $tenantConversionFormats ?? [];
+$useAllSizes = empty($tenantSizes) && $hasConvBase;
+$useAllFormats = empty($tenantFormats) && $hasConvBase;
+?>
     <div class="admin-card">
         <h2>Editar tenant</h2>
         <form method="post" class="admin-form">
@@ -34,6 +42,21 @@ $uploadUrl = rtrim($baseUrl, '/') . '/api/upload';
             <label>Nome <input type="text" name="name" value="<?= htmlspecialchars($tenant['name']) ?>"></label>
             <label><input type="checkbox" name="active" value="1" <?= !empty($tenant['active']) ? 'checked' : '' ?>> Ativo</label>
             <label><input type="checkbox" name="conversion_enabled" value="1" <?= !empty($tenant['conversion_enabled']) ? 'checked' : '' ?>> Conversão de imagens</label>
+            <?php if ($hasConvBase): ?>
+            <fieldset style="margin-top:1rem;padding:1rem;border:1px solid #ddd;border-radius:4px;">
+                <legend>Tamanhos e formatos (apenas subconjunto do global)</legend>
+                <p><strong>Tamanhos:</strong>
+                <?php foreach ($globalConv['sizes'] as $s): ?>
+                <label style="display:inline-block;margin-right:0.75rem;"><input type="checkbox" name="conversion_sizes[]" value="<?= htmlspecialchars($s['key']) ?>" <?= ($useAllSizes || in_array($s['key'], $tenantSizes, true)) ? 'checked' : '' ?>> <?= htmlspecialchars($s['key']) ?></label>
+                <?php endforeach; ?>
+                </p>
+                <p><strong>Formatos:</strong>
+                <?php foreach ($globalConv['formats'] as $f): ?>
+                <label style="display:inline-block;margin-right:0.75rem;"><input type="checkbox" name="conversion_formats[]" value="<?= htmlspecialchars($f) ?>" <?= ($useAllFormats || in_array($f, $tenantFormats, true)) ? 'checked' : '' ?>> <?= htmlspecialchars($f) ?></label>
+                <?php endforeach; ?>
+                </p>
+            </fieldset>
+            <?php endif; ?>
             <button type="submit" class="admin-btn">Salvar</button>
         </form>
     </div>
@@ -79,6 +102,11 @@ $uploadUrl = rtrim($baseUrl, '/') . '/api/upload';
 
     <div class="admin-card">
         <h2>Arquivos</h2>
+        <form method="post" action="<?= $baseUrl ?>/admin/tenants/<?= htmlspecialchars($tenant['uuid']) ?>/upload" enctype="multipart/form-data" style="margin-bottom:1rem;">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\NanoCDN\Auth::csrfToken()) ?>">
+            <input type="file" name="file" accept="image/jpeg,image/png,image/gif,image/webp,image/avif">
+            <button type="submit" class="admin-btn admin-btn-sm admin-btn-primary">Enviar arquivo</button>
+        </form>
         <p><a href="<?= $baseUrl ?>/admin/tenants/<?= htmlspecialchars($tenant['uuid']) ?>/files" class="admin-btn admin-btn-sm">Ver todos</a> <?= isset($totalFiles) && $totalFiles ? (int)$totalFiles . ' arquivo(s)' : '' ?></p>
         <?php if (isset($totalPages) && $totalPages > 1): ?>
         <p class="admin-breadcrumb">Página <?= (int)$page ?> de <?= $totalPages ?>. <?php if ($page > 1): ?><a href="?page=<?= $page - 1 ?>">← Anterior</a><?php endif; ?> <?php if (isset($page) && $page < $totalPages): ?><a href="?page=<?= $page + 1 ?>">Próxima →</a><?php endif; ?></p>
@@ -105,7 +133,7 @@ $uploadUrl = rtrim($baseUrl, '/') . '/api/upload';
             </tr>
             <?php endforeach; ?>
             <?php if (empty($files)): ?>
-            <tr><td colspan="5">Nenhum arquivo. Use a API para enviar.</td></tr>
+            <tr><td colspan="5">Nenhum arquivo. Envie pelo formulário acima ou via API.</td></tr>
             <?php endif; ?>
         </table>
     </div>

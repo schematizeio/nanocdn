@@ -3,14 +3,74 @@ namespace NanoCDN;
 
 class ImageConverter
 {
-    public static function generateVariants(int $fileId, string $sourcePath, string $tenantUuid, string $fileUuid, string $safeName, string $origExt): void
+    /** Opções globais (base): tamanhos e formatos habilitados no sistema. */
+    public static function getGlobalConversionOptions(): array
     {
         $cfg = config();
-        $sizes = $cfg['conversion']['sizes'] ?? [];
+        if (empty($cfg['conversion']['enabled'])) {
+            return ['enabled' => false, 'sizes' => [], 'formats' => [], 'size_keys' => []];
+        }
+        $rawSizes = $cfg['conversion']['sizes'] ?? [];
+        $sizes = [];
+        $sizeKeys = [];
+        foreach ($rawSizes as $s) {
+            $w = (int) ($s['w'] ?? 0);
+            $h = (int) ($s['h'] ?? 0);
+            $key = $w . 'x' . $h;
+            $sizes[] = ['w' => $w, 'h' => $h, 'key' => $key];
+            $sizeKeys[] = $key;
+        }
         $formats = $cfg['conversion']['formats'] ?? ['png', 'webp', 'avif'];
-        $driver = self::detectDriver();
+        return ['enabled' => true, 'sizes' => $sizes, 'formats' => $formats, 'size_keys' => $sizeKeys];
+    }
 
+    /** Opções efetivas para um tenant: subconjunto das globais (nunca mais que o global). */
+    public static function getEffectiveConversionOptions(array $tenant): array
+    {
+        $global = self::getGlobalConversionOptions();
+        if (!$global['enabled'] || empty($global['sizes']) || empty($global['formats'])) {
+            return ['sizes' => [], 'formats' => []];
+        }
+        $tenantSizes = self::decodeJsonColumn($tenant['conversion_sizes'] ?? null);
+        $tenantFormats = self::decodeJsonColumn($tenant['conversion_formats'] ?? null);
+        $sizes = $global['sizes'];
+        if (!empty($tenantSizes)) {
+            $allowedKeys = array_flip(array_intersect($tenantSizes, $global['size_keys']));
+            $sizes = array_filter($global['sizes'], fn($s) => isset($allowedKeys[$s['key']]));
+        }
+        $formats = $global['formats'];
+        if (!empty($tenantFormats)) {
+            $formats = array_values(array_intersect($tenantFormats, $global['formats']));
+        }
+        return ['sizes' => array_values($sizes), 'formats' => $formats];
+    }
+
+    private static function decodeJsonColumn(?string $json): array
+    {
+        if ($json === null || $json === '') {
+            return [];
+        }
+        $dec = json_decode($json, true);
+        return is_array($dec) ? $dec : [];
+    }
+
+    public static function generateVariants(int $fileId, string $sourcePath, string $tenantUuid, string $fileUuid, string $safeName, string $origExt, ?array $tenant = null): void
+    {
+        $driver = self::detectDriver();
         if (!$driver) {
+            return;
+        }
+        if ($tenant !== null) {
+            $effective = self::getEffectiveConversionOptions($tenant);
+            $sizes = $effective['sizes'];
+            $formats = $effective['formats'];
+        } else {
+            $global = self::getGlobalConversionOptions();
+            $sizes = $global['sizes'];
+            $formats = $global['formats'];
+        }
+
+        if (empty($sizes) || empty($formats)) {
             return;
         }
 
@@ -22,7 +82,7 @@ class ImageConverter
         foreach ($sizes as $size) {
             $w = (int) ($size['w'] ?? 0);
             $h = (int) ($size['h'] ?? 0);
-            $sizeKey = $w . 'x' . $h;
+            $sizeKey = $size['key'] ?? ($w . 'x' . $h);
             foreach ($formats as $format) {
                 if (!self::formatSupported($format, $driver)) {
                     continue;

@@ -40,8 +40,8 @@ class FileManager
 
         $conversionEnabled = !empty($tenant['conversion_enabled']);
         $cfg = config();
-        if ($conversionEnabled && !empty($cfg['conversion']['enabled']) && self::isImage($mime)) {
-            ImageConverter::generateVariants($fileId, $fullPath, $tenantUuid, $fileUuid, $safeName, $ext);
+        if ($conversionEnabled && self::isImage($mime)) {
+            ImageConverter::generateVariants($fileId, $fullPath, $tenantUuid, $fileUuid, $safeName, $ext, $tenant);
         }
 
         return [

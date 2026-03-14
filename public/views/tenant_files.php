@@ -12,6 +12,18 @@ $baseUrl = \NanoCDN\base_url();
 <body class="admin">
     <?php require __DIR__ . '/_admin_nav.php'; ?>
     <p class="admin-breadcrumb"><a href="<?= $baseUrl ?>/admin">Tenants</a> → <a href="<?= $baseUrl ?>/admin/tenants/<?= htmlspecialchars($tenant['uuid']) ?>"><?= htmlspecialchars($tenant['name']) ?></a> → Arquivos</p>
+
+    <div class="admin-card">
+        <h2>Enviar arquivo</h2>
+        <?php if (!empty($_GET['upload']) && $_GET['upload'] === 'ok'): ?><div class="admin-alert admin-alert-success">Arquivo enviado com sucesso.</div><?php endif; ?>
+        <?php if (!empty($uploadError)): ?><div class="admin-alert admin-alert-error"><?= htmlspecialchars($uploadError) ?></div><?php endif; ?>
+        <form method="post" action="<?= $baseUrl ?>/admin/tenants/<?= htmlspecialchars($tenant['uuid']) ?>/upload" enctype="multipart/form-data" class="admin-form">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\NanoCDN\Auth::csrfToken()) ?>">
+            <label>Arquivo (imagens até <?= (int)(\NanoCDN\config()['upload']['max_size_mb'] ?? 50) ?> MB) <input type="file" name="file" accept="image/jpeg,image/png,image/gif,image/webp,image/avif" required></label>
+            <button type="submit" class="admin-btn admin-btn-primary">Enviar</button>
+        </form>
+    </div>
+
     <div class="admin-card">
         <h1>Arquivos – <?= htmlspecialchars($tenant['name']) ?></h1>
         <?php if (isset($totalFiles) && $totalFiles > 0): ?>
@@ -38,7 +50,7 @@ $baseUrl = \NanoCDN\base_url();
             </tr>
             <?php endforeach; ?>
             <?php if (empty($files)): ?>
-            <tr><td colspan="5">Nenhum arquivo.</td></tr>
+            <tr><td colspan="5">Nenhum arquivo. Envie pela interface acima ou via API.</td></tr>
             <?php endif; ?>
         </table>
     </div>

@@ -13,7 +13,15 @@
     <div class="admin-card">
         <h1>Atualizar do repositório</h1>
         <p>Puxa as alterações de <a href="https://github.com/schematizeio/nanocdn" target="_blank" rel="noopener">github.com/schematizeio/nanocdn</a>. Só funciona se o projeto tiver sido instalado via <code>git clone</code>.</p>
-        <?php if (!empty($error)): ?><div class="admin-alert admin-alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+        <?php if (!empty($error)): ?>
+        <div class="admin-alert admin-alert-error"><?= htmlspecialchars($error) ?></div>
+        <?php if (!empty($manualUpdateCommand)): ?>
+        <p>Comando:</p>
+        <pre class="admin-code" id="manual-update-cmd"><?= htmlspecialchars($manualUpdateCommand) ?></pre>
+        <button type="button" class="admin-btn admin-btn-sm" id="copy-update-cmd">Copiar comando</button>
+        <script>document.getElementById('copy-update-cmd').onclick=function(){var el=document.getElementById('manual-update-cmd');navigator.clipboard.writeText(el.innerText).then(function(){this.textContent='Copiado!';}.bind(this));};</script>
+        <?php endif; ?>
+        <?php endif; ?>
         <?php if (isset($output) && $output !== ''): ?><pre class="admin-code"><?= htmlspecialchars($output) ?></pre><?php endif; ?>
         <form method="post">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\NanoCDN\Auth::csrfToken()) ?>">

@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS `tenants` (
   `slug` varchar(100) NOT NULL,
   `active` tinyint(1) NOT NULL DEFAULT 1,
   `conversion_enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `conversion_sizes` text DEFAULT NULL COMMENT 'JSON array of size keys (e.g. ["1920x1080"]), null = use all global',
+  `conversion_formats` text DEFAULT NULL COMMENT 'JSON array (e.g. ["webp","avif"]), null = use all global',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
