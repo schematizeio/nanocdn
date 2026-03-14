@@ -2,12 +2,18 @@
 if (\NanoCDN\Auth::check()) {
     $navBase = \NanoCDN\base_url();
 ?>
-<nav style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
-    <strong>NanoCDN</strong>
-    <a href="<?= $navBase ?>/admin" style="color:#06c;">Tenants</a>
-    <a href="<?= $navBase ?>/admin/check" style="color:#06c;">Checker</a>
-    <a href="<?= $navBase ?>/admin/password" style="color:#06c;">Alterar senha</a>
-    <a href="<?= $navBase ?>/admin/update" style="color:#06c;">Atualizar</a>
-    <a href="<?= $navBase ?>/admin/logout" style="color:#06c;">Sair</a>
-</nav>
+<header class="admin-header">
+    <div class="admin-header-inner">
+        <a href="<?= $navBase ?>/admin" class="admin-logo">NanoCDN</a>
+        <nav class="admin-nav">
+            <a href="<?= $navBase ?>/admin">Tenants</a>
+            <a href="<?= $navBase ?>/admin/tenants/new">Criar tenant</a>
+            <a href="<?= $navBase ?>/admin/check">Checker</a>
+            <a href="<?= $navBase ?>/admin/password">Senha</a>
+            <a href="<?= $navBase ?>/admin/update">Atualizar</a>
+            <a href="<?= $navBase ?>/admin/logout">Sair</a>
+        </nav>
+    </div>
+</header>
+<main class="admin-main">
 <?php } ?>

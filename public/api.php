@@ -4,12 +4,11 @@
  * Autenticação: header API-Key: nc_...
  */
 
-use NanoCDN\config;
 use NanoCDN\FileManager;
 use NanoCDN\json_response;
 use NanoCDN\Tenant;
 
-$cfg = config();
+$cfg = \NanoCDN\config();
 if (!empty($cfg['cors']['enabled'])) {
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
     $allowed = $cfg['cors']['allowed_origins'] ?? ['*'];

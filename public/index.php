@@ -47,6 +47,20 @@ if (!$envInstalled && $path !== '/install.php') {
 
 \NanoCDN\Database::init($config['database']);
 
+// Arquivos estáticos do admin (CSS/JS na pasta public)
+$publicDir = __DIR__;
+$staticPath = $publicDir . preg_replace('#/+#', '/', $path);
+if (preg_match('#^/[a-z0-9_.-]+\.(css|js|ico)$#i', $path) && is_file($staticPath) && strpos(realpath($staticPath), realpath($publicDir)) === 0) {
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $mimes = ['css' => 'text/css', 'js' => 'application/javascript', 'ico' => 'image/x-icon'];
+    if (isset($mimes[$ext])) {
+        header('Content-Type: ' . $mimes[$ext]);
+        header('Cache-Control: public, max-age=3600');
+        readfile($staticPath);
+        exit;
+    }
+}
+
 // Rotas estáticas: servir arquivo do storage
 if (preg_match('#^/f/([a-f0-9-]+)/([a-f0-9-]+)/([^/]+)$#', $path, $m)) {
     $tenantUuid = $m[1];

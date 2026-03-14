@@ -5,7 +5,6 @@
 
 use NanoCDN\Auth;
 use NanoCDN\base_url;
-use NanoCDN\config;
 use NanoCDN\Database;
 use NanoCDN\FileManager;
 use NanoCDN\ImageConverter;
@@ -58,7 +57,7 @@ if ($path === '/check') {
     $storagePath = \NanoCDN\storage_path('');
     $storageWritable = is_dir($storagePath) && is_writable($storagePath);
     $phpVersion = PHP_VERSION;
-    $appVersion = (config())['version'] ?? '0.1.0';
+    $appVersion = (\NanoCDN\config())['version'] ?? '0.1.0';
     require __DIR__ . '/views/admin_check.php';
     exit;
 }
@@ -72,25 +71,28 @@ if ($path === '/update') {
             $error = 'Este diretório não é um clone Git. Faça o deploy via clone (git clone) para usar atualização automática.';
         } else {
             $branch = 'master';
-            $cmd = sprintf('cd %s && git pull origin %s 2>&1', escapeshellarg($repoRoot), escapeshellarg($branch));
+            $safeRoot = function_exists('escapeshellarg') ? escapeshellarg($repoRoot) : "'" . str_replace("'", "'\\''", $repoRoot) . "'";
+            $safeBranch = function_exists('escapeshellarg') ? escapeshellarg($branch) : "'" . str_replace("'", "'\\''", $branch) . "'";
             if (function_exists('exec')) {
+                $cmd = "cd {$safeRoot} && git pull origin {$safeBranch} 2>&1";
                 exec($cmd, $lines, $code);
                 $output = implode("\n", $lines ?: []);
                 if ($code !== 0) {
-                    $cmdMain = sprintf('cd %s && git pull origin main 2>&1', escapeshellarg($repoRoot));
+                    $safeMain = function_exists('escapeshellarg') ? escapeshellarg('main') : 'main';
+                    $cmdMain = "cd {$safeRoot} && git pull origin {$safeMain} 2>&1";
                     exec($cmdMain, $linesMain, $codeMain);
                     $output = implode("\n", $linesMain ?: []);
                     if ($codeMain === 0) {
                         $output = "Atualização concluída (branch main).\n" . $output;
                     } else {
-                        $error = 'Falha no git pull. Verifique permissões e se o servidor permite exec().';
+                        $error = 'Falha no git pull. Atualize manualmente: cd ' . htmlspecialchars($repoRoot) . ' && git pull origin main';
                         $output = trim($output) ?: 'Sem saída.';
                     }
                 } else {
                     $output = "Atualização concluída (branch {$branch}).\n" . $output;
                 }
             } else {
-                $error = 'A função exec() está desabilitada no servidor. Atualize manualmente (git pull) ou habilite exec().';
+                $error = 'exec() desabilitada. Atualize manualmente: cd ' . htmlspecialchars($repoRoot) . ' && git pull origin main';
             }
         }
     }
