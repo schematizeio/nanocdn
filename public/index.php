@@ -3,11 +3,27 @@
  * NanoCDN - Front controller
  */
 
-define('NANOCDN_ROOT', dirname(__DIR__));
+$indexDir = __DIR__;
+define('NANOCDN_ROOT', (basename($indexDir) === 'public' ? dirname($indexDir) : $indexDir));
 chdir(NANOCDN_ROOT);
 
-require NANOCDN_ROOT . '/src/helpers.php';
-require_once NANOCDN_ROOT . '/src/Database.php';
+$helpersPath = NANOCDN_ROOT . '/src/helpers.php';
+if (!is_file($helpersPath)) {
+    http_response_code(500);
+    die('NanoCDN: src/helpers.php não encontrado. Raiz esperada: ' . NANOCDN_ROOT);
+}
+require $helpersPath;
+
+$databasePath = NANOCDN_ROOT . '/src/Database.php';
+if (!is_file($databasePath)) {
+    http_response_code(500);
+    die('NanoCDN: src/Database.php não encontrado. Raiz: ' . NANOCDN_ROOT);
+}
+require_once $databasePath;
+if (!class_exists('NanoCDN\Database', false)) {
+    http_response_code(500);
+    die('NanoCDN: classe Database não encontrada após carregar ' . $databasePath);
+}
 
 $config = \NanoCDN\config();
 if (!empty($config['timezone'])) {
