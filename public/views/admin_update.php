@@ -12,7 +12,7 @@
     <p class="admin-breadcrumb"><a href="<?= $base ?>/admin">Tenants</a> → Atualizar</p>
     <div class="admin-card">
         <h1>Atualizar do repositório</h1>
-        <p>Puxa as alterações de <a href="https://github.com/schematizeio/nanocdn" target="_blank" rel="noopener">github.com/schematizeio/nanocdn</a>. Só funciona se o projeto tiver sido instalado via <code>git clone</code>.</p>
+        <p>Puxa as alterações de <a href="https://github.com/schematizeio/nanocdn" target="_blank" rel="noopener">github.com/schematizeio/nanocdn</a>. Só funciona se o projeto tiver sido instalado via <code>git clone</code>. Depois de atualizar, <a href="<?= $base ?>/admin/migrations">rode as migrações</a> se houver pendentes.</p>
         <?php if (!empty($error)): ?>
         <div class="admin-alert admin-alert-error"><?= htmlspecialchars($error) ?></div>
         <?php if (!empty($manualUpdateCommand)): ?>

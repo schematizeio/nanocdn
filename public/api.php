@@ -15,7 +15,7 @@ if (!empty($cfg['cors']['enabled'])) {
     if (in_array('*', $allowed, true) || in_array($origin, $allowed, true)) {
         header('Access-Control-Allow-Origin: ' . ($origin ?: '*'));
     }
-    header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, HEAD, OPTIONS');
     header('Access-Control-Allow-Headers: API-Key, X-Api-Key, Content-Type');
     header('Access-Control-Max-Age: 86400');
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -64,6 +64,16 @@ if (!$tenant) {
 
 $maxSize = ($cfg['upload']['max_size_mb'] ?? 50) * 1024 * 1024;
 $allowedMimes = $cfg['upload']['allowed_mimes'] ?? [];
+
+// API S3-compatible: /api/s3/{bucket}/{key...} — bucket = tenant slug ou uuid
+if ($resource === 's3') {
+    $s3Bucket = $parts[1] ?? '';
+    $s3Key = isset($parts[2]) ? implode('/', array_slice($parts, 2)) : '';
+    $s3Tenant = $tenant;
+    $s3Cfg = $cfg;
+    require __DIR__ . '/api_s3.php';
+    exit;
+}
 
 if ($resource === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $file = $_FILES['file'] ?? null;

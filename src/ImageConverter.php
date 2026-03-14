@@ -3,24 +3,60 @@ namespace NanoCDN;
 
 class ImageConverter
 {
-    /** Opções globais (base): tamanhos e formatos habilitados no sistema. */
+    /** Opções globais (base): tamanhos e formatos. Lê de config e sobrescreve com settings (DB) se existir. */
     public static function getGlobalConversionOptions(): array
     {
         $cfg = config();
-        if (empty($cfg['conversion']['enabled'])) {
+        $enabled = !empty($cfg['conversion']['enabled']);
+        $rawSizes = $cfg['conversion']['sizes'] ?? [];
+        $formats = $cfg['conversion']['formats'] ?? ['png', 'webp', 'avif'];
+
+        try {
+            $rows = Database::fetchAll('SELECT `key`, `value` FROM settings WHERE `key` IN (\'conversion_enabled\', \'conversion_sizes\', \'conversion_formats\')');
+            $settings = [];
+            foreach ($rows as $r) {
+                $settings[$r['key']] = $r['value'];
+            }
+            if (isset($settings['conversion_enabled'])) {
+                $enabled = $settings['conversion_enabled'] === '1' || $settings['conversion_enabled'] === 'true';
+            }
+            if (!empty($settings['conversion_sizes'])) {
+                $dec = json_decode($settings['conversion_sizes'], true);
+                if (is_array($dec)) {
+                    $rawSizes = $dec;
+                }
+            }
+            if (!empty($settings['conversion_formats'])) {
+                $dec = json_decode($settings['conversion_formats'], true);
+                if (is_array($dec)) {
+                    $formats = $dec;
+                }
+            }
+        } catch (\Throwable $e) {
+            // settings não disponível ou tabela inexistente
+        }
+
+        if (!$enabled) {
             return ['enabled' => false, 'sizes' => [], 'formats' => [], 'size_keys' => []];
         }
-        $rawSizes = $cfg['conversion']['sizes'] ?? [];
         $sizes = [];
         $sizeKeys = [];
         foreach ($rawSizes as $s) {
-            $w = (int) ($s['w'] ?? 0);
-            $h = (int) ($s['h'] ?? 0);
+            if (is_string($s)) {
+                if (preg_match('/^(\d+)\s*x\s*(\d+)$/i', str_replace(' ', '', $s), $m)) {
+                    $w = (int) $m[1];
+                    $h = (int) $m[2];
+                } else {
+                    continue;
+                }
+            } else {
+                $w = (int) ($s['w'] ?? 0);
+                $h = (int) ($s['h'] ?? 0);
+            }
             $key = $w . 'x' . $h;
             $sizes[] = ['w' => $w, 'h' => $h, 'key' => $key];
             $sizeKeys[] = $key;
         }
-        $formats = $cfg['conversion']['formats'] ?? ['png', 'webp', 'avif'];
         return ['enabled' => true, 'sizes' => $sizes, 'formats' => $formats, 'size_keys' => $sizeKeys];
     }
 

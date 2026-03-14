@@ -17,6 +17,7 @@ Esta documentação descreve como integrar outros serviços à API do NanoCDN pa
 9. [URLs públicas dos arquivos](#9-urls-públicas-dos-arquivos)
 10. [Códigos HTTP e erros](#10-códigos-http-e-erros)
 11. [Exemplos de integração](#11-exemplos-de-integração)
+12. [API compatível com S3](#12-api-compatível-com-s3)
 
 ---
 
@@ -75,6 +76,7 @@ Substitua `https://seu-dominio.com` pela URL base da sua instalação do NanoCDN
 | Listar arquivos      | GET    | `/api/files`      | Listar arquivos do tenant    |
 | Detalhes do arquivo  | GET    | `/api/files/{uuid}`| Dados e URLs de um arquivo   |
 | Excluir arquivo      | DELETE | `/api/files/{uuid}`| Excluir um arquivo           |
+| **S3-compatible**   |        | `/api/s3/{bucket}/{key}` | PutObject, GetObject, DeleteObject, HeadObject, ListObjectsV2 — ver [§12](#12-api-compatível-com-s3) e [S3-COMPATIBLE.md](S3-COMPATIBLE.md) |
 
 **URL pública do arquivo e saúde (sem API Key):**
 
@@ -470,3 +472,50 @@ document.querySelector('input[type=file]').addEventListener('change', async (e) 
 7. **Exibir/entregar:** usar a URL pública `{BASE}/f/{tenant_uuid}/{file_uuid}/{filename}` sem autenticação.
 
 Com isso, a integração da API do NanoCDN em outros serviços fica coberta de forma consistente e previsível.
+
+---
+
+## 12. API compatível com S3
+
+O NanoCDN expõe uma **API compatível com S3** (Amazon Simple Storage Service) para permitir o uso de clientes e SDKs que falam o protocolo S3 (listagem em XML, PutObject, GetObject, DeleteObject, HeadObject, ListObjectsV2).
+
+### Diferenças em relação ao S3 da AWS
+
+- **Autenticação:** em vez de AWS Signature Version 4, use o header **`API-Key`** (ou `X-Api-Key`) com a API Key do tenant, igual à API REST do NanoCDN.
+- **Bucket:** o “bucket” é o **tenant**. Use o **slug** ou o **UUID** do tenant como nome do bucket na URL. Ex.: se o tenant tem slug `meu-site`, as chamadas são `PUT /api/s3/meu-site/chave/do/objeto`.
+- **Base URL:** `{BASE_URL}/api/s3/{bucket}/{key}` (objetos) ou `{BASE_URL}/api/s3/{bucket}?list-type=2&...` (listagem).
+- **Respostas de listagem:** XML no formato ListBucketResult (ListObjectsV2). Erros também em XML (`<Error><Code>...</Code><Message>...</Message></Error>`).
+
+### Endpoints S3 (resumo)
+
+| Operação        | Método | URL | Descrição |
+|-----------------|--------|-----|-----------|
+| PutObject      | PUT    | `/api/s3/{bucket}/{key}` | Cria ou substitui objeto; corpo = conteúdo binário |
+| GetObject      | GET    | `/api/s3/{bucket}/{key}` | Retorna o conteúdo do objeto |
+| HeadObject     | HEAD   | `/api/s3/{bucket}/{key}` | Retorna apenas headers (Content-Length, Content-Type, ETag, Last-Modified) |
+| DeleteObject   | DELETE | `/api/s3/{bucket}/{key}` | Remove o objeto |
+| ListObjectsV2  | GET    | `/api/s3/{bucket}?list-type=2&prefix=&max-keys=&continuation-token=` | Lista objetos (XML) |
+
+### Exemplo rápido – cURL
+
+```bash
+# Upload (PutObject)
+curl -X PUT "https://seu-dominio.com/api/s3/meu-tenant/imagens/foto.png" \
+  -H "API-Key: nc_sua_chave" \
+  -H "Content-Type: image/png" \
+  --data-binary @foto.png
+
+# Download (GetObject)
+curl -H "API-Key: nc_sua_chave" \
+  "https://seu-dominio.com/api/s3/meu-tenant/imagens/foto.png" -o foto.png
+
+# Listar (ListObjectsV2)
+curl -H "API-Key: nc_sua_chave" \
+  "https://seu-dominio.com/api/s3/meu-tenant?list-type=2&prefix=imagens/&max-keys=100"
+
+# Excluir (DeleteObject)
+curl -X DELETE -H "API-Key: nc_sua_chave" \
+  "https://seu-dominio.com/api/s3/meu-tenant/imagens/foto.png"
+```
+
+**Documentação completa** (formato XML, paginação, erros, uso com AWS CLI e outros clientes): [S3-COMPATIBLE.md](S3-COMPATIBLE.md).

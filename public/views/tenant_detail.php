@@ -41,10 +41,13 @@ $useAllFormats = empty($tenantFormats) && $hasConvBase;
             <input type="hidden" name="action" value="update">
             <label>Nome <input type="text" name="name" value="<?= htmlspecialchars($tenant['name']) ?>"></label>
             <label><input type="checkbox" name="active" value="1" <?= !empty($tenant['active']) ? 'checked' : '' ?>> Ativo</label>
-            <label><input type="checkbox" name="conversion_enabled" value="1" <?= !empty($tenant['conversion_enabled']) ? 'checked' : '' ?>> Conversão de imagens</label>
+            <label><input type="checkbox" name="conversion_enabled" value="1" <?= !empty($tenant['conversion_enabled']) ? 'checked' : '' ?>> Gerar variantes de imagem (vários tamanhos/formatos)</label>
+            <?php if (!$hasConvBase): ?>
+            <p class="admin-alert admin-alert-info" style="margin-top:0.5rem;">Configure primeiro a <a href="<?= $baseUrl ?>/admin/conversion">conversão global</a> (tamanhos e formatos base).</p>
+            <?php endif; ?>
             <?php if ($hasConvBase): ?>
             <fieldset style="margin-top:1rem;padding:1rem;border:1px solid #ddd;border-radius:4px;">
-                <legend>Tamanhos e formatos (apenas subconjunto do global)</legend>
+                <legend>Variantes deste tenant (subconjunto do <a href="<?= $baseUrl ?>/admin/conversion">global</a>)</legend>
                 <p><strong>Tamanhos:</strong>
                 <?php foreach ($globalConv['sizes'] as $s): ?>
                 <label style="display:inline-block;margin-right:0.75rem;"><input type="checkbox" name="conversion_sizes[]" value="<?= htmlspecialchars($s['key']) ?>" <?= ($useAllSizes || in_array($s['key'], $tenantSizes, true)) ? 'checked' : '' ?>> <?= htmlspecialchars($s['key']) ?></label>
@@ -112,17 +115,22 @@ $useAllFormats = empty($tenantFormats) && $hasConvBase;
         <p class="admin-breadcrumb">Página <?= (int)$page ?> de <?= $totalPages ?>. <?php if ($page > 1): ?><a href="?page=<?= $page - 1 ?>">← Anterior</a><?php endif; ?> <?php if (isset($page) && $page < $totalPages): ?><a href="?page=<?= $page + 1 ?>">Próxima →</a><?php endif; ?></p>
         <?php endif; ?>
         <table class="admin-table">
-            <tr><th>Nome</th><th>Data</th><th>Tamanho</th><th>Links</th><th></th></tr>
+            <tr><th>Nome</th><th>Data</th><th>Tamanho</th><th>Variantes</th><th></th></tr>
             <?php foreach (array_slice($files ?? [], 0, 10) as $f): ?>
+            <?php $variants = $f['variants'] ?? []; $onlyOriginal = count($variants) <= 1; ?>
             <tr>
                 <td><?= htmlspecialchars($f['original_name']) ?></td>
                 <td><?= date('d/m/Y H:i', strtotime($f['created_at'])) ?></td>
                 <td><?= number_format($f['size_bytes'] / 1024, 1) ?> KB</td>
                 <td>
-                    <?php foreach (array_slice($f['variants'], 0, 2) as $v): ?>
-                    <a href="<?= $baseUrl ?>/f/<?= $tenant['uuid'] ?>/<?= $f['file_uuid'] ?>/<?= htmlspecialchars(basename($v['path'])) ?>"><?= $v['size_key'] ?>.<?= $v['format'] ?></a>
-                    <?php endforeach; ?>
-                    <?php if (count($f['variants']) > 2): ?>...<?php endif; ?>
+                    <ul class="admin-variant-list">
+                        <?php foreach ($variants as $v): ?>
+                        <li><a href="<?= $baseUrl ?>/f/<?= $tenant['uuid'] ?>/<?= $f['file_uuid'] ?>/<?= htmlspecialchars(basename($v['path'])) ?>"><?= htmlspecialchars($v['size_key'] . '.' . $v['format']) ?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php if ($onlyOriginal && !empty($variants)): ?>
+                    <span class="admin-muted">Só original. <a href="<?= $baseUrl ?>/admin/conversion">Habilite conversão global</a> e aqui no tenant.</span>
+                    <?php endif; ?>
                 </td>
                 <td>
                     <form method="post" action="<?= $baseUrl ?>/admin/files/delete/<?= $f['id'] ?>" style="display:inline;" onsubmit="return confirm('Excluir?');">

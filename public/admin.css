@@ -40,3 +40,8 @@ body.admin { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe U
 .admin-code { background: #1a1a2e; color: #e0e0e0; padding: 0.75rem 1rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem; overflow-x: auto; margin: 0.5rem 0; }
 .admin-endpoint { font-size: 0.85rem; color: #2563eb; word-break: break-all; }
 .admin-table tr.inactive td { color: #999; }
+.admin-variant-list { margin: 0; padding-left: 1.25rem; font-size: 0.85rem; list-style: disc; }
+.admin-variant-list li { margin: 0.2rem 0; }
+.admin-variant-list li a { color: #2563eb; text-decoration: none; }
+.admin-muted { font-size: 0.8rem; color: #6b7280; }
+.admin-muted a { color: #2563eb; }

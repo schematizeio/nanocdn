@@ -54,10 +54,13 @@ CREATE TABLE IF NOT EXISTS `files` (
   `extension` varchar(20) NOT NULL,
   `size_bytes` bigint unsigned NOT NULL DEFAULT 0,
   `path_original` varchar(512) NOT NULL,
+  `s3_key` varchar(512) DEFAULT NULL COMMENT 'Object key for S3-compatible API; unique per tenant',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `tenant_file_uuid` (`tenant_id`,`file_uuid`),
+  UNIQUE KEY `tenant_s3_key` (`tenant_id`,`s3_key`),
   KEY `tenant_id` (`tenant_id`),
+  KEY `tenant_s3_prefix` (`tenant_id`,`s3_key`(255)),
   CONSTRAINT `files_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -79,6 +82,12 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `value` text,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `migrations` (
+  `id` varchar(100) NOT NULL,
+  `executed_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

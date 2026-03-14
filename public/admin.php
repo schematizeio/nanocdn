@@ -8,7 +8,9 @@ use NanoCDN\base_url;
 use NanoCDN\Database;
 use NanoCDN\FileManager;
 use NanoCDN\ImageConverter;
+use NanoCDN\Migrations;
 use NanoCDN\redirect;
+use NanoCDN\Settings;
 use NanoCDN\Tenant;
 
 header('X-Content-Type-Options: nosniff');
@@ -59,6 +61,17 @@ if ($path === '/check') {
     $phpVersion = PHP_VERSION;
     $appVersion = (\NanoCDN\config())['version'] ?? '0.1.0';
     require __DIR__ . '/views/admin_check.php';
+    exit;
+}
+
+if ($path === '/migrations') {
+    $pending = Migrations::getPending();
+    $executedIds = Migrations::getExecutedIds();
+    $migrationResult = null;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+        $migrationResult = Migrations::runPending();
+    }
+    require __DIR__ . '/views/admin_migrations.php';
     exit;
 }
 
@@ -122,6 +135,31 @@ if ($path === '/password') {
         }
     }
     require __DIR__ . '/views/admin_password.php';
+    exit;
+}
+
+if ($path === '/conversion') {
+    $globalConv = ImageConverter::getGlobalConversionOptions();
+    $saved = false;
+    $convError = '';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+        $enabled = isset($_POST['conversion_enabled']) ? '1' : '0';
+        Settings::set('conversion_enabled', $enabled);
+        $sizesRaw = trim($_POST['conversion_sizes'] ?? '');
+        $sizesArr = [];
+        foreach (preg_split('/\r?\n/', $sizesRaw) as $line) {
+            $line = trim($line);
+            if (preg_match('/^(\d+)\s*[x×]\s*(\d+)$/i', str_replace(' ', '', $line), $m)) {
+                $sizesArr[] = ['w' => (int) $m[1], 'h' => (int) $m[2]];
+            }
+        }
+        Settings::set('conversion_sizes', $sizesArr ? json_encode($sizesArr) : null);
+        $formats = is_array($_POST['conversion_formats'] ?? null) ? $_POST['conversion_formats'] : [];
+        Settings::set('conversion_formats', $formats ? json_encode($formats) : null);
+        $saved = true;
+        $globalConv = ImageConverter::getGlobalConversionOptions();
+    }
+    require __DIR__ . '/views/admin_conversion.php';
     exit;
 }
 
@@ -217,8 +255,10 @@ if (preg_match('#^/tenants/(' . $uuidRegex . ')$#', $path, $m)) {
         }
     }
     $globalConversion = ImageConverter::getGlobalConversionOptions();
-    $tenantConversionSizes = $tenant['conversion_sizes'] ? (json_decode($tenant['conversion_sizes'], true) ?: []) : [];
-    $tenantConversionFormats = $tenant['conversion_formats'] ? (json_decode($tenant['conversion_formats'], true) ?: []) : [];
+    $rawSizes = $tenant['conversion_sizes'] ?? null;
+    $tenantConversionSizes = $rawSizes !== null && $rawSizes !== '' ? (json_decode($rawSizes, true) ?: []) : [];
+    $rawFormats = $tenant['conversion_formats'] ?? null;
+    $tenantConversionFormats = $rawFormats !== null && $rawFormats !== '' ? (json_decode($rawFormats, true) ?: []) : [];
     $apiKeys = Tenant::getApiKeys($tenantId);
     $page = max(1, (int) ($_GET['page'] ?? 1));
     $perPage = 20;
