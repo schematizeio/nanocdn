@@ -1,0 +1,6 @@
+# NanoCDN - Redireciona tudo para public/ (exceto install.php na raiz)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} !^/install\.php$
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

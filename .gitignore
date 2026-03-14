@@ -1,0 +1,20 @@
+# Instalação e ambiente
+config/.env.installed
+.env
+.env.local
+*.env
+
+# Storage (arquivos enviados pelos tenants)
+storage/*
+!storage/.gitkeep
+
+# IDE e OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs (se houver)
+*.log
+logs/
