@@ -4,8 +4,10 @@
  * Ajuste estes valores ou use variáveis de ambiente em produção.
  */
 
-$envFile = __DIR__ . '/.env.installed';
-if (is_file($envFile)) {
+$rootEnv = __DIR__ . '/../.env';
+$legacyEnv = __DIR__ . '/.env.installed';
+$envFile = is_file($rootEnv) ? $rootEnv : (is_file($legacyEnv) ? $legacyEnv : null);
+if ($envFile) {
     foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
             list($k, $v) = explode('=', $line, 2);

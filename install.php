@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 $alreadyInstalled = false;
-$envFile = __DIR__ . '/config/.env.installed';
+$envFile = is_file(__DIR__ . '/.env') ? __DIR__ . '/.env' : __DIR__ . '/config/.env.installed';
 if (is_file($envFile)) {
     $env = [];
     foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
@@ -60,11 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($base_url !== '') {
                     $env .= "NANOCDN_BASE_URL=" . str_replace(["\n", "\r"], '', $base_url) . "\n";
                 }
-                $configDir = __DIR__ . '/config';
-                if (!is_dir($configDir)) {
-                    mkdir($configDir, 0755, true);
-                }
-                file_put_contents($configDir . '/.env.installed', $env);
+                file_put_contents(__DIR__ . '/.env', $env);
                 $storageDir = __DIR__ . '/storage';
                 if (!is_dir($storageDir)) {
                     mkdir($storageDir, 0755, true);

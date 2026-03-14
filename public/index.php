@@ -20,7 +20,7 @@ if ($path === '/') {
     $path = '/admin';
 }
 
-$envInstalled = is_file(NANOCDN_ROOT . '/config/.env.installed');
+$envInstalled = is_file(NANOCDN_ROOT . '/.env') || is_file(NANOCDN_ROOT . '/config/.env.installed');
 if (!$envInstalled && $path !== '/install.php') {
     $isApiHealth = (strpos($path, '/api/') === 0 && preg_match('#^/api/health$#', $path));
     $isFileDelivery = (strpos($path, '/f/') === 0);

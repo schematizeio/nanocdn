@@ -44,11 +44,16 @@ Aplicação leve em PHP + MySQL para upload e processamento de arquivos em hospe
 
 ## Estrutura
 
+- **`.env`** – na **raiz do projeto** (criado pelo install ou manualmente). Credenciais do banco e opções (NANOCDN_DB_*, NANOCDN_BASE_URL, etc.). Pode editar à mão para ajustar.
 - `public/` – front controller (`index.php`), API (`api.php`), admin (`admin.php`) e views
-- `config/` – configuração e `.env.installed` (gerado na instalação)
+- `config/` – configuração (`config.php`); `.env.example` é só modelo
 - `src/` – classes (Database, Auth, Tenant, FileManager, ImageConverter)
 - `storage/` – arquivos por tenant: `{tenant_uuid}/{file_uuid}/{arquivo}-{size}.{ext}`
 - `docs/API.md` – documentação detalhada da API para integração
+
+## Atualização pelo painel
+
+Se o projeto foi instalado via **git clone** ([schematizeio/nanocdn](https://github.com/schematizeio/nanocdn)), use **Admin → Atualizar** para rodar `git pull` e trazer as últimas alterações. Em hospedagem compartilhada, `exec()` pode estar desabilitada; nesse caso, atualize manualmente (git pull no servidor).
 
 ## Documentação da API
 

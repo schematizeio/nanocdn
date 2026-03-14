@@ -7,6 +7,7 @@ if (\NanoCDN\Auth::check()) {
     <a href="<?= $navBase ?>/admin" style="color:#06c;">Tenants</a>
     <a href="<?= $navBase ?>/admin/check" style="color:#06c;">Checker</a>
     <a href="<?= $navBase ?>/admin/password" style="color:#06c;">Alterar senha</a>
+    <a href="<?= $navBase ?>/admin/update" style="color:#06c;">Atualizar</a>
     <a href="<?= $navBase ?>/admin/logout" style="color:#06c;">Sair</a>
 </nav>
 <?php } ?>

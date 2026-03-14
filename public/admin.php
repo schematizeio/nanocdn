@@ -63,6 +63,41 @@ if ($path === '/check') {
     exit;
 }
 
+if ($path === '/update') {
+    $output = '';
+    $error = '';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+        $repoRoot = defined('NANOCDN_ROOT') ? NANOCDN_ROOT : dirname(__DIR__);
+        if (!is_dir($repoRoot . '/.git')) {
+            $error = 'Este diretório não é um clone Git. Faça o deploy via clone (git clone) para usar atualização automática.';
+        } else {
+            $branch = 'master';
+            $cmd = sprintf('cd %s && git pull origin %s 2>&1', escapeshellarg($repoRoot), escapeshellarg($branch));
+            if (function_exists('exec')) {
+                exec($cmd, $lines, $code);
+                $output = implode("\n", $lines ?: []);
+                if ($code !== 0) {
+                    $cmdMain = sprintf('cd %s && git pull origin main 2>&1', escapeshellarg($repoRoot));
+                    exec($cmdMain, $linesMain, $codeMain);
+                    $output = implode("\n", $linesMain ?: []);
+                    if ($codeMain === 0) {
+                        $output = "Atualização concluída (branch main).\n" . $output;
+                    } else {
+                        $error = 'Falha no git pull. Verifique permissões e se o servidor permite exec().';
+                        $output = trim($output) ?: 'Sem saída.';
+                    }
+                } else {
+                    $output = "Atualização concluída (branch {$branch}).\n" . $output;
+                }
+            } else {
+                $error = 'A função exec() está desabilitada no servidor. Atualize manualmente (git pull) ou habilite exec().';
+            }
+        }
+    }
+    require __DIR__ . '/views/admin_update.php';
+    exit;
+}
+
 if ($path === '/password') {
     $error = '';
     $success = '';
