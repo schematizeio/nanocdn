@@ -32,5 +32,6 @@ $isEdit = !empty($user['id']);
             <a href="<?= $base ?>/admin/users" class="admin-btn">Cancelar</a>
         </form>
     </div>
+    <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>
 </html>

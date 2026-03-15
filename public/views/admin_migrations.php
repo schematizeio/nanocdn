@@ -61,5 +61,6 @@ $migrationResult = $migrationResult ?? null;
         </ul>
     </div>
     <?php endif; ?>
+    <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>
 </html>

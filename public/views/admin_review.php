@@ -68,5 +68,6 @@ $base = \NanoCDN\base_url();
             <tr><th>HTTPS</th><td class="<?= !empty($r['https']) ? 'ok' : 'no' ?>"><?= !empty($r['https']) ? 'Sim' : 'Não (recomenda-se HTTPS em produção)' ?></td></tr>
         </table>
     </div>
+    <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>
 </html>

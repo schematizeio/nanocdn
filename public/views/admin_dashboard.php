@@ -47,5 +47,6 @@ $totalFiles = (int)($totalFiles['n'] ?? 0);
         </table>
         <?php endif; ?>
     </div>
+    <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>
 </html>

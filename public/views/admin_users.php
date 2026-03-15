@@ -46,5 +46,6 @@ $currentId = (int)(\NanoCDN\Auth::user()['id'] ?? 0);
         </table>
         <?php if (empty($users)): ?><p class="admin-empty">Nenhum usuário. <a href="<?= $base ?>/admin/users/new" class="admin-btn">Criar primeiro usuário</a></p><?php endif; ?>
     </div>
+    <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>
 </html>

@@ -89,7 +89,7 @@ $useAllFormats = empty($tenantFormats) && $hasConvBase;
             <tr><th>Prefix</th><th>Nome</th><th>Último uso</th><th></th></tr>
             <?php foreach ($apiKeys as $k): ?>
             <tr>
-                <td><?= htmlspecialchars($k['key_prefix']) ?></td>
+                <td><code><?= htmlspecialchars($k['key_prefix']) ?>…</code></td>
                 <td><?= htmlspecialchars($k['name'] ?? '') ?></td>
                 <td><?= $k['last_used_at'] ? date('d/m/Y H:i', strtotime($k['last_used_at'])) : '-' ?></td>
                 <td>
@@ -149,5 +149,6 @@ $useAllFormats = empty($tenantFormats) && $hasConvBase;
             <?php endif; ?>
         </table>
     </div>
+    <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>
 </html>

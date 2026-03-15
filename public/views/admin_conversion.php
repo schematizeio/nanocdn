@@ -58,5 +58,6 @@ $caps = \NanoCDN\ImageConverter::getServerCapabilities();
         <p>Driver disponível: <?= htmlspecialchars($caps['driver'] ?? 'nenhum') ?>.</p>
         <p>Qualidade: <?= (int)($g['quality'] ?? 85) ?>.</p>
     </div>
+    <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>
 </html>

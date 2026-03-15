@@ -28,5 +28,6 @@
             <button type="submit" class="admin-btn admin-btn-primary">Atualizar (git pull)</button>
         </form>
     </div>
+    <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>
 </html>

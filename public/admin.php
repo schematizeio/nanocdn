@@ -430,11 +430,21 @@ if (preg_match('#^/tenants/(' . $uuidRegex . ')$#', $path, $m)) {
         exit;
     }
     $tenantId = (int) $tenant['id'];
-    $newKey = $_GET['new_key'] ?? null;
+    Auth::init();
+    $newKey = null;
+    if (!empty($_SESSION['nanocdn_new_api_key']) && ($_SESSION['nanocdn_new_api_key']['tenant_uuid'] ?? '') === $tenantUuid) {
+        $newKey = $_SESSION['nanocdn_new_api_key']['key'];
+        unset($_SESSION['nanocdn_new_api_key']);
+    }
+    if ($newKey === null) {
+        $newKey = $_GET['new_key'] ?? null;
+    }
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
         if (isset($_POST['action'])) {
             if ($_POST['action'] === 'regenerate_key') {
-                Tenant::createApiKey($tenantId, 'Generated ' . date('Y-m-d H:i'));
+                $keyData = Tenant::createApiKey($tenantId, 'Generated ' . date('Y-m-d H:i'));
+                Auth::init();
+                $_SESSION['nanocdn_new_api_key'] = ['key' => $keyData['key'], 'tenant_uuid' => $tenantUuid];
                 \NanoCDN\redirect(\NanoCDN\base_url('admin/tenants/' . $tenantUuid));
             }
             if ($_POST['action'] === 'update') {

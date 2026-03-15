@@ -30,5 +30,6 @@ $allowRegistration = $allowRegistration ?? \NanoCDN\allow_registration();
             <button type="submit" class="admin-btn admin-btn-primary">Salvar</button>
         </form>
     </div>
+    <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>
 </html>
