@@ -212,4 +212,56 @@ class FileManager
         }
         return self::delete((int) $file['id']);
     }
+
+    /**
+     * Remove variantes geradas e regera a partir do original (path_original).
+     * Útil quando a qualidade ficou ruim ou se mudou a configuração de conversão.
+     */
+    public static function regenerateVariants(int $fileId): bool
+    {
+        $file = Database::fetchOne('SELECT * FROM files WHERE id = ?', [$fileId]);
+        if (!$file) {
+            return false;
+        }
+        $tenant = Tenant::getById((int) $file['tenant_id']);
+        if (!$tenant) {
+            return false;
+        }
+        $fullPath = storage_path($file['path_original']);
+        if (!is_file($fullPath)) {
+            return false;
+        }
+        $variants = self::getVariants($fileId);
+        foreach ($variants as $v) {
+            if ($v['path'] === $file['path_original']) {
+                continue;
+            }
+            $p = storage_path($v['path']);
+            if (is_file($p)) {
+                @unlink($p);
+            }
+        }
+        Database::run('DELETE FROM file_variants WHERE file_id = ?', [$fileId]);
+        $ext = $file['extension'] ?? pathinfo($file['path_original'], PATHINFO_EXTENSION);
+        Database::run(
+            'INSERT INTO file_variants (file_id, size_key, format, path, size_bytes) VALUES (?, ?, ?, ?, ?)',
+            [$fileId, 'original', $ext, $file['path_original'], (int) $file['size_bytes']]
+        );
+        $baseName = basename($file['path_original']);
+        $safeName = preg_replace('/-original\.[^.]+$/', '', $baseName);
+        if ($safeName === $baseName) {
+            $safeName = preg_replace('/\.[^.]+$/', '', $baseName);
+            $safeName = preg_replace('/[^a-z0-9_-]/i', '-', $safeName);
+        }
+        ImageConverter::generateVariants(
+            $fileId,
+            $fullPath,
+            $tenant['uuid'],
+            $file['file_uuid'],
+            $safeName,
+            $ext,
+            $tenant
+        );
+        return true;
+    }
 }

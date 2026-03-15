@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página não encontrada - NanoCDN</title>
+    <title>Página não encontrada - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: system-ui, sans-serif; max-width: 480px; margin: 4rem auto; padding: 1rem; text-align: center; }

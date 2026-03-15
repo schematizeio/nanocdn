@@ -34,6 +34,15 @@ $step = (int) ($_GET['step'] ?? 1);
 $error = '';
 $success = '';
 
+$suggestedBaseUrl = '';
+if (!empty($_SERVER['HTTP_HOST'])) {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'];
+    $script = $_SERVER['SCRIPT_NAME'] ?? '/install.php';
+    $dir = dirname($script);
+    $suggestedBaseUrl = $scheme . '://' . $host . ($dir === '.' || $dir === '/' ? '' : rtrim($dir, '/'));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($step === 1) {
         $host = trim($_POST['db_host'] ?? 'localhost');
@@ -117,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label>E-mail <input type="email" name="admin_email" value="<?= htmlspecialchars($_POST['admin_email'] ?? '') ?>"></label>
             <label>Senha (mín. 6 caracteres) <input type="password" name="admin_pass"></label>
             <h2>URL base (opcional)</h2>
-            <label>URL base <input type="url" name="base_url" placeholder="https://cdn.seudominio.com" value="<?= htmlspecialchars($_POST['base_url'] ?? '') ?>"> <small>Use se estiver atrás de proxy ou em subdomínio; deixe vazio para detectar automaticamente.</small></label>
+            <label>URL base <input type="url" name="base_url" id="base_url" placeholder="https://cdn.seudominio.com" value="<?= htmlspecialchars($_POST['base_url'] ?? $suggestedBaseUrl) ?>"> <small>Preenchido com a URL atual; altere só se for diferente (ex.: proxy).</small></label>
             <button type="submit">Instalar</button>
         </form>
     <?php elseif (empty($alreadyInstalled) && $step === 2): ?>

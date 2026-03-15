@@ -8,7 +8,7 @@ $hasConversionBase = !empty($global['enabled']) && !empty($global['sizes']) && !
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Criar tenant - NanoCDN</title>
+    <title>Criar tenant - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
     <?php require __DIR__ . '/_admin_head.php'; ?>
 </head>
 <body class="admin">

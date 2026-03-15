@@ -7,7 +7,7 @@ $base = \NanoCDN\base_url();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checker - NanoCDN</title>
+    <title>Checker - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
     <?php require __DIR__ . '/_admin_head.php'; ?>
 </head>
 <body class="admin">
@@ -27,7 +27,7 @@ $base = \NanoCDN\base_url();
             <tr><td>AVIF</td><td><?= $caps['avif'] ? 'Sim' : 'Não' ?></td></tr>
             <tr><td>Driver</td><td><?= htmlspecialchars($caps['driver'] ?? 'Nenhum') ?></td></tr>
         </table>
-        <?php if (!empty($appVersion)): ?><p style="margin-top:1rem;font-size:0.85rem;color:#999;">NanoCDN <?= htmlspecialchars($appVersion) ?></p><?php endif; ?>
+        <?php if (!empty($appVersion)): ?><p style="margin-top:1rem;font-size:0.85rem;color:#999;"><?= htmlspecialchars(\NanoCDN\app_name()) ?> <?= htmlspecialchars($appVersion) ?></p><?php endif; ?>
     </div>
 </body>
 </html>

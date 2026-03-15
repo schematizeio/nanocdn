@@ -6,7 +6,7 @@ $baseUrl = \NanoCDN\base_url();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquivos - <?= htmlspecialchars($tenant['name']) ?> - NanoCDN</title>
+    <title>Arquivos - <?= htmlspecialchars($tenant['name']) ?> - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
     <?php require __DIR__ . '/_admin_head.php'; ?>
 </head>
 <body class="admin">
@@ -16,6 +16,7 @@ $baseUrl = \NanoCDN\base_url();
     <div class="admin-card">
         <h2>Enviar arquivo</h2>
         <?php if (!empty($_GET['upload']) && $_GET['upload'] === 'ok'): ?><div class="admin-alert admin-alert-success">Arquivo enviado com sucesso.</div><?php endif; ?>
+        <?php if (!empty($_GET['reconverted'])): ?><div class="admin-alert admin-alert-success">Variantes reconvertidas.</div><?php endif; ?>
         <?php if (!empty($uploadError)): ?><div class="admin-alert admin-alert-error"><?= htmlspecialchars($uploadError) ?></div><?php endif; ?>
         <form method="post" action="<?= $baseUrl ?>/admin/tenants/<?= htmlspecialchars($tenant['uuid']) ?>/upload" enctype="multipart/form-data" class="admin-form">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\NanoCDN\Auth::csrfToken()) ?>">
@@ -48,6 +49,10 @@ $baseUrl = \NanoCDN\base_url();
                     <?php endif; ?>
                 </td>
                 <td>
+                    <form method="post" action="<?= $baseUrl ?>/admin/files/reconvert/<?= $f['id'] ?>" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\NanoCDN\Auth::csrfToken()) ?>">
+                        <button type="submit" class="admin-btn admin-btn-sm" title="Regenerar variantes a partir do original (ex.: após ajustar qualidade)">Reconverter</button>
+                    </form>
                     <form method="post" action="<?= $baseUrl ?>/admin/files/delete/<?= $f['id'] ?>" style="display:inline;" onsubmit="return confirm('Excluir?');">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\NanoCDN\Auth::csrfToken()) ?>">
                         <button type="submit" class="admin-btn admin-btn-sm admin-btn-danger">Excluir</button>

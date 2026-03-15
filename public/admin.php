@@ -1,7 +1,19 @@
 <?php
 /**
  * NanoCDN - Admin (login, tenants, files, checker)
+ * Deve ser usado via index.php; se invocado direto (ex.: /admin/login sem query), repassa ao front controller.
  */
+if (!class_exists('NanoCDN\Database', false)) {
+    $uri = $_SERVER['REQUEST_URI'] ?? '/admin';
+    $path = strpos($uri, '?') !== false ? strstr($uri, '?', true) : $uri;
+    $path = '/' . trim($path, '/');
+    if ($path === '' || $path === '/') {
+        $path = '/admin';
+    }
+    $_GET['__path'] = $path;
+    require __DIR__ . '/index.php';
+    return;
+}
 
 use NanoCDN\Auth;
 use NanoCDN\base_url;
@@ -43,6 +55,71 @@ if ($path === '/login') {
 if ($path === '/logout') {
     Auth::logout();
     \NanoCDN\redirect(\NanoCDN\base_url('admin/login'));
+}
+
+// Registro (com token de convite ou aberto se allow_registration)
+if ($path === '/register') {
+    $token = trim($_GET['token'] ?? '');
+    $invite = null;
+    if ($token !== '') {
+        try {
+            $invite = Database::fetchOne('SELECT id, token, email FROM admin_invites WHERE token = ? AND used_at IS NULL', [$token]);
+            if (!$invite) {
+                $invite = false; // token inválido ou já usado
+            }
+        } catch (\Throwable $e) {
+            $invite = false; // tabela pode não existir ainda
+        }
+    }
+    $allowOpen = \NanoCDN\allow_registration();
+    if ($token === '' && !$allowOpen) {
+        \NanoCDN\redirect(\NanoCDN\base_url('admin/login'));
+    }
+    $regError = '';
+    $regSuccess = false;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+        $email = trim($_POST['email'] ?? '');
+        $name = trim($_POST['name'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $postToken = trim($_POST['invite_token'] ?? '');
+        if ($email === '' || strlen($password) < 6) {
+            $regError = 'E-mail e senha (mín. 6 caracteres) são obrigatórios.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $regError = 'E-mail inválido.';
+        } else {
+            $inviteToConsume = null;
+            if ($postToken !== '') {
+                try {
+                    $inviteToConsume = Database::fetchOne('SELECT id, email FROM admin_invites WHERE token = ? AND used_at IS NULL', [$postToken]);
+                } catch (\Throwable $e) {
+                    $inviteToConsume = null;
+                }
+                if (!$inviteToConsume) {
+                    $regError = 'Convite inválido ou já utilizado.';
+                }
+            } elseif (!$allowOpen) {
+                $regError = 'Cadastro só é permitido com convite.';
+            }
+            if ($regError === '' && Database::fetchOne('SELECT id FROM admin_users WHERE email = ?', [$email])) {
+                $regError = 'Já existe uma conta com este e-mail.';
+            }
+            if ($regError === '') {
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                Database::run('INSERT INTO admin_users (email, password_hash, name) VALUES (?, ?, ?)', [$email, $hash, $name !== '' ? $name : $email]);
+                if (!empty($inviteToConsume['id'])) {
+                    try {
+                        Database::run('UPDATE admin_invites SET used_at = NOW() WHERE id = ?', [$inviteToConsume['id']]);
+                    } catch (\Throwable $e) {
+                        // tabela pode não existir
+                    }
+                }
+                $regSuccess = true;
+                \NanoCDN\redirect(\NanoCDN\base_url('admin/login?registered=1'));
+            }
+        }
+    }
+    require __DIR__ . '/views/admin_register.php';
+    exit;
 }
 
 Auth::requireAdmin();
@@ -156,10 +233,131 @@ if ($path === '/conversion') {
         Settings::set('conversion_sizes', $sizesArr ? json_encode($sizesArr) : null);
         $formats = is_array($_POST['conversion_formats'] ?? null) ? $_POST['conversion_formats'] : [];
         Settings::set('conversion_formats', $formats ? json_encode($formats) : null);
+        $qual = isset($_POST['conversion_quality']) ? (int) $_POST['conversion_quality'] : 85;
+        $qual = max(1, min(100, $qual));
+        Settings::set('conversion_quality', (string) $qual);
         $saved = true;
         $globalConv = ImageConverter::getGlobalConversionOptions();
     }
     require __DIR__ . '/views/admin_conversion.php';
+    exit;
+}
+
+if ($path === '/settings' || $path === '/configuracoes') {
+    Auth::requireAdmin();
+    $saved = false;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+        $name = trim($_POST['app_name'] ?? '');
+        Settings::set('app_name', $name !== '' ? $name : null);
+        $logo = trim($_POST['app_logo_url'] ?? '');
+        Settings::set('app_logo_url', $logo !== '' ? $logo : null);
+        Settings::set('allow_registration', !empty($_POST['allow_registration']) ? '1' : '0');
+        $saved = true;
+    }
+    $appName = \NanoCDN\app_name();
+    $appNameValue = Settings::get('app_name');
+    $appLogoUrl = \NanoCDN\app_logo_url();
+    $allowRegistration = \NanoCDN\allow_registration();
+    require __DIR__ . '/views/admin_settings.php';
+    exit;
+}
+
+// CRUD usuários admin
+if ($path === '/users') {
+    $users = Database::fetchAll('SELECT id, email, name, created_at FROM admin_users ORDER BY name, email');
+    require __DIR__ . '/views/admin_users.php';
+    exit;
+}
+
+if ($path === '/users/new') {
+    $userError = '';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+        $email = trim($_POST['email'] ?? '');
+        $name = trim($_POST['name'] ?? '');
+        $password = $_POST['password'] ?? '';
+        if ($email === '' || strlen($password) < 6) {
+            $userError = 'E-mail e senha (mín. 6 caracteres) são obrigatórios.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $userError = 'E-mail inválido.';
+        } elseif (Database::fetchOne('SELECT id FROM admin_users WHERE email = ?', [$email])) {
+            $userError = 'Já existe usuário com este e-mail.';
+        } else {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            Database::run('INSERT INTO admin_users (email, password_hash, name) VALUES (?, ?, ?)', [$email, $hash, $name !== '' ? $name : $email]);
+            \NanoCDN\redirect(\NanoCDN\base_url('admin/users?created=1'));
+        }
+    }
+    require __DIR__ . '/views/admin_user_form.php';
+    exit;
+}
+
+if (preg_match('#^/users/(\d+)/edit$#', $path, $m)) {
+    $userId = (int) $m[1];
+    $user = Database::fetchOne('SELECT id, email, name FROM admin_users WHERE id = ?', [$userId]);
+    if (!$user) {
+        \NanoCDN\redirect(\NanoCDN\base_url('admin/users'));
+    }
+    $userError = '';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+        $name = trim($_POST['name'] ?? '');
+        $newPassword = $_POST['new_password'] ?? '';
+        Database::run('UPDATE admin_users SET name = ? WHERE id = ?', [$name !== '' ? $name : $user['email'], $userId]);
+        if ($newPassword !== '') {
+            if (strlen($newPassword) < 6) {
+                $userError = 'Nova senha deve ter pelo menos 6 caracteres.';
+            } else {
+                $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+                Database::run('UPDATE admin_users SET password_hash = ? WHERE id = ?', [$hash, $userId]);
+            }
+        }
+        if ($userError === '') {
+            \NanoCDN\redirect(\NanoCDN\base_url('admin/users?updated=1'));
+        }
+    }
+    $user = Database::fetchOne('SELECT id, email, name FROM admin_users WHERE id = ?', [$userId]);
+    require __DIR__ . '/views/admin_user_form.php';
+    exit;
+}
+
+if (preg_match('#^/users/(\d+)/delete$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+    $userId = (int) $m[1];
+    $currentId = (int) (Auth::user()['id'] ?? 0);
+    if ($userId !== $currentId) {
+        Database::run('DELETE FROM admin_users WHERE id = ?', [$userId]);
+    }
+    \NanoCDN\redirect(\NanoCDN\base_url('admin/users'));
+}
+
+// Convites (cadastro por link ou e-mail)
+if ($path === '/invites') {
+    $inviteError = '';
+    $inviteSuccess = '';
+    $newLink = '';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+        $action = $_POST['action'] ?? 'create';
+        if ($action === 'create') {
+            $email = trim($_POST['email'] ?? '');
+            $token = bin2hex(random_bytes(32));
+            $createdBy = (int) (Auth::user()['id'] ?? 0);
+            try {
+                Database::run('INSERT INTO admin_invites (token, email, created_by) VALUES (?, ?, ?)', [$token, $email !== '' ? $email : null, $createdBy]);
+                $base = \NanoCDN\base_url('');
+                $newLink = $base . 'admin/register?token=' . $token;
+                $inviteSuccess = $email !== '' ? 'Convite criado. Envie o link abaixo ao destinatário (ou use o link gerado).' : 'Link de convite gerado (uso único).';
+            } catch (\Throwable $e) {
+                $inviteError = 'Erro ao criar convite: ' . $e->getMessage();
+            }
+        }
+    }
+    try {
+        $invites = Database::fetchAll('SELECT i.id, i.token, i.email, i.used_at, i.created_at, u.name AS created_by_name FROM admin_invites i LEFT JOIN admin_users u ON u.id = i.created_by ORDER BY i.created_at DESC LIMIT 100');
+    } catch (\Throwable $e) {
+        $invites = [];
+        if (empty($inviteError)) {
+            $inviteError = 'Execute as migrações em Admin → Migrações para usar convites.';
+        }
+    }
+    require __DIR__ . '/views/admin_invites.php';
     exit;
 }
 
@@ -340,6 +538,17 @@ if (preg_match('#^/files/delete/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD
         FileManager::delete($fileId);
         $t = Tenant::getById((int) $file['tenant_id']);
         \NanoCDN\redirect(\NanoCDN\base_url('admin/tenants/' . ($t['uuid'] ?? $file['tenant_id'])));
+    }
+    \NanoCDN\redirect(\NanoCDN\base_url('admin'));
+}
+
+if (preg_match('#^/files/reconvert/(\d+)$#', $path, $m) && $_SERVER['REQUEST_METHOD'] === 'POST' && Auth::csrfVerify()) {
+    $fileId = (int) $m[1];
+    $file = Database::fetchOne('SELECT tenant_id FROM files WHERE id = ?', [$fileId]);
+    if ($file) {
+        FileManager::regenerateVariants($fileId);
+        $t = Tenant::getById((int) $file['tenant_id']);
+        \NanoCDN\redirect(\NanoCDN\base_url('admin/tenants/' . ($t['uuid'] ?? $file['tenant_id']) . '/files?reconverted=1'));
     }
     \NanoCDN\redirect(\NanoCDN\base_url('admin'));
 }

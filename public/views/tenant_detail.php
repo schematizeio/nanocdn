@@ -7,7 +7,7 @@ $uploadUrl = rtrim($baseUrl, '/') . '/api/upload';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($tenant['name']) ?> - NanoCDN</title>
+    <title><?= htmlspecialchars($tenant['name']) ?> - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
     <?php require __DIR__ . '/_admin_head.php'; ?>
 </head>
 <body class="admin">
@@ -133,6 +133,10 @@ $useAllFormats = empty($tenantFormats) && $hasConvBase;
                     <?php endif; ?>
                 </td>
                 <td>
+                    <form method="post" action="<?= $baseUrl ?>/admin/files/reconvert/<?= $f['id'] ?>" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\NanoCDN\Auth::csrfToken()) ?>">
+                        <button type="submit" class="admin-btn admin-btn-sm">Reconverter</button>
+                    </form>
                     <form method="post" action="<?= $baseUrl ?>/admin/files/delete/<?= $f['id'] ?>" style="display:inline;" onsubmit="return confirm('Excluir?');">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\NanoCDN\Auth::csrfToken()) ?>">
                         <button type="submit" class="admin-btn admin-btn-sm admin-btn-danger">Excluir</button>

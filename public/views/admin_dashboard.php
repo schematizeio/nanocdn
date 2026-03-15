@@ -8,7 +8,7 @@ $totalFiles = (int)($totalFiles['n'] ?? 0);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenants - NanoCDN</title>
+    <title>Tenants - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
     <?php require __DIR__ . '/_admin_head.php'; ?>
 </head>
 <body class="admin">

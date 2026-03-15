@@ -17,7 +17,8 @@ if ($envFile) {
 }
 
 return [
-    'version' => '1.0.7',
+    'version' => '1.0.8',
+    'app_name' => getenv('NANOCDN_APP_NAME') ?: '', // whitelabel: nome do painel; vazio = configurar em Admin → Configurações
     'env' => getenv('NANOCDN_ENV') ?: 'development',
     'debug' => filter_var(getenv('NANOCDN_DEBUG') ?: true, FILTER_VALIDATE_BOOLEAN),
     'base_url' => getenv('NANOCDN_BASE_URL') ?: (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') : '') . dirname($_SERVER['SCRIPT_NAME'] ?? ''),
@@ -37,16 +38,10 @@ return [
     ],
 
     'conversion' => [
-        'enabled' => false, // true = serviço de conversão disponível; tenants escolhem subconjunto abaixo
-        'sizes' => [
-            ['w' => 1920, 'h' => 1080],
-            ['w' => 1366, 'h' => 1080],
-            ['w' => 960, 'h' => 540],
-            ['w' => 480, 'h' => 270],
-            ['w' => 1080, 'h' => 1080],
-            ['w' => 512, 'h' => 512],
-        ],
+        'enabled' => false, // true = serviço de conversão disponível; tenants escolhem subconjunto
+        'sizes' => [], // vazio = usa getDefaultSizes() (1920×1080, 1080×1920, 1024×1024 × escalas)
         'formats' => ['png', 'webp', 'avif'],
+        'quality' => 85, // 1–100 compressão WebP/AVIF/JPEG
         'driver' => 'auto', // auto | gd | imagick
     ],
 

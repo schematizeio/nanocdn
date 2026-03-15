@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NanoCDN – Documentação da API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf9f7;
+      --card: #fff;
+      --text: #1c1917;
+      --muted: #57534e;
+      --accent: #0d9488;
+      --accent-hover: #0f766e;
+      --border: #e7e5e4;
+      --code-bg: #1c1917;
+      --code-text: #e7e5e4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .layout { display: flex; min-height: 100vh; }
+    nav.sidebar {
+      width: 260px;
+      padding: 1.5rem 0 2rem 1.25rem;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    nav.sidebar h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 0 0 0.75rem 1rem;
+    }
+    nav.sidebar a {
+      display: block;
+      padding: 0.35rem 1rem;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      border-radius: 6px;
+    }
+    nav.sidebar a:hover { background: var(--bg); color: var(--accent); }
+    nav.sidebar a.active { font-weight: 600; color: var(--accent); }
+    main {
+      flex: 1;
+      max-width: 52rem;
+      padding: 2rem 2.5rem 4rem;
+      margin: 0 auto;
+    }
+    h1 { font-size: 1.85rem; margin: 0 0 0.5rem; }
+    .lead { color: var(--muted); font-size: 1.05rem; margin-bottom: 2rem; }
+    h2 { font-size: 1.35rem; margin: 2.25rem 0 0.75rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+    h2:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+    h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+    p { margin: 0 0 0.75rem; }
+    ul { margin: 0 0 1rem; padding-left: 1.25rem; }
+    li { margin: 0.25rem 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+    th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); }
+    th { font-weight: 600; color: var(--muted); background: var(--bg); }
+    pre, code { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+    code { background: var(--border); padding: 0.15em 0.4em; border-radius: 4px; }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    pre code { background: none; padding: 0; color: inherit; }
+    .example { margin: 1.25rem 0; }
+    .example-title { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 0.35rem; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin: 1rem 0; }
+    .badge { display: inline-block; padding: 0.2em 0.5em; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-get { background: #dbeafe; color: #1e40af; }
+    .badge-post { background: #d1fae5; color: #065f46; }
+    .badge-put { background: #fef3c7; color: #92400e; }
+    .badge-delete { background: #fee2e2; color: #991b1b; }
+    .badge-head { background: #e0e7ff; color: #3730a3; }
+    section.doc-section { margin-bottom: 2.5rem; }
+    .markdown-for-ai { margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .markdown-for-ai summary { cursor: pointer; font-weight: 600; color: var(--muted); }
+    .markdown-for-ai pre { font-size: 0.75rem; max-height: 24rem; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    @media (max-width: 768px) {
+      .layout { flex-direction: column; }
+      nav.sidebar { width: 100%; height: auto; position: relative; }
+      main { padding: 1.5rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" aria-label="Documentação">
+      <h2>API REST</h2>
+      <a href="#api-visao">Visão geral</a>
+      <a href="#api-auth">Autenticação</a>
+      <a href="#api-endpoints">Endpoints</a>
+      <a href="#api-upload">Upload</a>
+      <a href="#api-listar">Listar arquivos</a>
+      <a href="#api-detalhes">Detalhes do arquivo</a>
+      <a href="#api-excluir">Excluir</a>
+      <a href="#api-urls-publicas">URLs públicas</a>
+      <a href="#api-http">Códigos HTTP</a>
+      <a href="#api-exemplos">Exemplos (cURL, PHP, JS)</a>
+      <h2>API S3</h2>
+      <a href="#s3-visao">Visão geral S3</a>
+      <a href="#s3-auth">Auth e bucket</a>
+      <a href="#s3-put">PutObject</a>
+      <a href="#s3-get">GetObject</a>
+      <a href="#s3-head">HeadObject</a>
+      <a href="#s3-delete">DeleteObject</a>
+      <a href="#s3-list">ListObjectsV2</a>
+      <a href="#s3-erros">Erros XML</a>
+      <a href="#s3-exemplos">Exemplos S3</a>
+    </nav>
+
+    <main>
+      <h1>NanoCDN – Documentação da API</h1>
+      <p class="lead">Integração para upload, listagem e exclusão de arquivos, com URLs públicas para CDN. Exemplos prontos para copiar e colar.</p>
+
+      <!-- ========== API REST ========== -->
+      <section class="doc-section" id="api-visao">
+        <h2 id="api-visao">1. Visão geral (API REST)</h2>
+        <p>A API é RESTful e usa <strong>API Key</strong> no header para identificar o tenant. Respostas em JSON.</p>
+        <ul>
+          <li><strong>Métodos:</strong> GET, POST, DELETE</li>
+          <li><strong>Autenticação:</strong> header <code>API-Key</code> ou <code>X-Api-Key</code></li>
+          <li><strong>CORS:</strong> opcional (configurável)</li>
+        </ul>
+      </section>
+
+      <section class="doc-section" id="api-auth">
+        <h2 id="api-auth">2. Autenticação</h2>
+        <p>Cada tenant tem uma ou mais API Keys (geradas no painel). Envie em <strong>todas</strong> as requisições (exceto URL pública e <code>/api/health</code>):</p>
+        <div class="example">
+          <div class="example-title">Exemplo rápido (cURL)</div>
+          <pre><code>curl -H "API-Key: nc_sua_chave_aqui" "https://seu-dominio.com/api/files"</code></pre>
+        </div>
+        <table>
+          <thead><tr><th>Situação</th><th>HTTP</th><th>Resposta</th></tr></thead>
+          <tbody>
+            <tr><td>Header ausente</td><td>401</td><td><code>{"error":"Missing API-Key header","code":401}</code></td></tr>
+            <tr><td>Chave inválida</td><td>403</td><td><code>{"error":"Invalid API key","code":403}</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="doc-section" id="api-endpoints">
+        <h2 id="api-endpoints">3. Base URL e endpoints</h2>
+        <p>Substitua <code>https://seu-dominio.com</code> pela URL base da sua instalação.</p>
+        <table>
+          <thead><tr><th>Recurso</th><th>Método</th><th>Caminho</th></tr></thead>
+          <tbody>
+            <tr><td>Saúde</td><td>GET</td><td><code>/api/health</code> (sem API Key)</td></tr>
+            <tr><td>Upload</td><td>POST</td><td><code>/api/upload</code></td></tr>
+            <tr><td>Listar arquivos</td><td>GET</td><td><code>/api/files</code></td></tr>
+            <tr><td>Detalhes</td><td>GET</td><td><code>/api/files/{uuid}</code></td></tr>
+            <tr><td>Excluir</td><td>DELETE</td><td><code>/api/files/{uuid}</code></td></tr>
+            <tr><td>S3-compatible</td><td>—</td><td><code>/api/s3/{bucket}/{key}</code> (ver seção S3)</td></tr>
+          </tbody>
+        </table>
+        <p><strong>URL pública (sem auth):</strong> <code>{BASE}/f/{tenant_uuid}/{file_uuid}/{filename}</code></p>
+      </section>
+
+      <section class="doc-section" id="api-upload">
+        <h2 id="api-upload">4. Upload de arquivo</h2>
+        <p><span class="badge badge-post">POST</span> <code>{BASE_URL}/api/upload</code> — <code>multipart/form-data</code>, campo <strong>file</strong>.</p>
+        <div class="example">
+          <div class="example-title">cURL – enviar uma imagem</div>
+          <pre><code>curl -X POST "https://seu-dominio.com/api/upload" \
+  -H "API-Key: nc_sua_chave_aqui" \
+  -F "file=@/caminho/local/foto.png"</code></pre>
+        </div>
+        <p>Resposta de sucesso (HTTP 201):</p>
+        <pre><code>{
+  "ok": true,
+  "file_uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "original_name": "foto.png",
+  "variants": [
+    { "size_key": "original", "format": "png", "url": "https://.../f/.../foto-original.png" },
+    { "size_key": "1920x1080", "format": "webp", "url": "https://.../f/.../foto-1920x1080.webp" }
+  ]
+}</code></pre>
+        <p>Use <code>file_uuid</code> e <code>variants[].url</code> para referência e exibição.</p>
+      </section>
+
+      <section class="doc-section" id="api-listar">
+        <h2 id="api-listar">5. Listar arquivos</h2>
+        <p><span class="badge badge-get">GET</span> <code>{BASE_URL}/api/files?limit=20&offset=0</code></p>
+        <div class="example">
+          <div class="example-title">cURL</div>
+          <pre><code>curl -H "API-Key: nc_sua_chave_aqui" \
+  "https://seu-dominio.com/api/files?limit=20&offset=0"</code></pre>
+        </div>
+        <p>Resposta: <code>total</code>, <code>limit</code>, <code>offset</code> e array <code>files[]</code> com <code>file_uuid</code>, <code>original_name</code>, <code>urls</code> (mapa <code>size_key.format</code> → URL pública).</p>
+      </section>
+
+      <section class="doc-section" id="api-detalhes">
+        <h2 id="api-detalhes">6. Detalhes de um arquivo</h2>
+        <p><span class="badge badge-get">GET</span> <code>{BASE_URL}/api/files/{file_uuid}</code></p>
+        <pre><code>curl -H "API-Key: nc_sua_chave_aqui" \
+  "https://seu-dominio.com/api/files/550e8400-e29b-41d4-a716-446655440000"</code></pre>
+        <p>404 = arquivo não existe ou pertence a outro tenant.</p>
+      </section>
+
+      <section class="doc-section" id="api-excluir">
+        <h2 id="api-excluir">7. Excluir arquivo</h2>
+        <p><span class="badge badge-delete">DELETE</span> <code>{BASE_URL}/api/files/{file_uuid}</code></p>
+        <pre><code>curl -X DELETE -H "API-Key: nc_sua_chave_aqui" \
+  "https://seu-dominio.com/api/files/550e8400-e29b-41d4-a716-446655440000"</code></pre>
+        <p>Sucesso: 200 com <code>{"ok": true}</code>. 404 = não encontrado.</p>
+      </section>
+
+      <section class="doc-section" id="api-urls-publicas">
+        <h2 id="api-urls-publicas">8. URLs públicas</h2>
+        <p>Não exigem API Key. Use em <code>img src</code>, links, etc.</p>
+        <pre><code>{BASE_URL}/f/{tenant_uuid}/{file_uuid}/{filename}</code></pre>
+        <p>Exemplo: <code>https://seu-dominio.com/f/a1b2.../e5f6.../foto-1920x1080.webp</code></p>
+        <p>Inclui cache (ETag, Last-Modified, 304).</p>
+      </section>
+
+      <section class="doc-section" id="api-http">
+        <h2 id="api-http">9. Códigos HTTP</h2>
+        <table>
+          <thead><tr><th>Código</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td>200</td><td>GET, DELETE OK</td></tr>
+            <tr><td>201</td><td>Upload criado</td></tr>
+            <tr><td>304</td><td>Cache /f/ (If-None-Match)</td></tr>
+            <tr><td>400</td><td>Upload inválido, tipo/tamanho</td></tr>
+            <tr><td>401</td><td>API Key ausente</td></tr>
+            <tr><td>403</td><td>API Key inválida</td></tr>
+            <tr><td>404</td><td>Recurso não encontrado</td></tr>
+            <tr><td>500</td><td>Erro interno</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="doc-section" id="api-exemplos">
+        <h2 id="api-exemplos">10. Exemplos para humanos</h2>
+        <h3>PHP – Upload e pegar URL</h3>
+        <pre><code>&lt;?php
+$apiKey = 'nc_sua_chave_aqui';
+$baseUrl = 'https://seu-dominio.com';
+$cfile = new CURLFile('/caminho/foto.png', 'image/png', 'foto.png');
+$ch = curl_init($baseUrl . '/api/upload');
+curl_setopt_array($ch, [
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => ['file' => $cfile],
+    CURLOPT_HTTPHEADER => ['API-Key: ' . $apiKey],
+    CURLOPT_RETURNTRANSFER => true,
+]);
+$data = json_decode(curl_exec($ch), true);
+if (curl_getinfo($ch, CURLINFO_HTTP_CODE) === 201)
+    echo "URL: " . $data['variants'][0]['url'];</code></pre>
+        <h3>JavaScript (fetch) – Upload</h3>
+        <pre><code>const res = await fetch('https://seu-dominio.com/api/upload', {
+  method: 'POST',
+  headers: { 'API-Key': 'nc_sua_chave_aqui' },
+  body: (() => { const f = new FormData(); f.append('file', file); return f; })()
+});
+const data = await res.json();
+if (res.status === 201) console.log('URL:', data.variants[0].url);</code></pre>
+        <div class="card">
+          <strong>Resumo rápido:</strong> 1) Obter API Key no painel. 2) Upload: POST <code>/api/upload</code>, header <code>API-Key</code>, body <code>file</code>. 3) Guardar <code>file_uuid</code> e <code>variants[].url</code>. 4) Listar: GET <code>/api/files</code>. 5) Excluir: DELETE <code>/api/files/{uuid}</code>. 6) Entregar: URL <code>/f/{tenant_uuid}/{file_uuid}/{filename}</code>.
+        </div>
+      </section>
+
+      <!-- ========== API S3 ========== -->
+      <section class="doc-section" id="s3-visao">
+        <h2 id="s3-visao">API compatível com S3</h2>
+        <p>Operações S3: PutObject, GetObject, HeadObject, DeleteObject, ListObjectsV2. Autenticação com header <strong>API-Key</strong> (não AWS Signature). <strong>Bucket</strong> = tenant (slug ou UUID).</p>
+      </section>
+
+      <section class="doc-section" id="s3-auth">
+        <h2 id="s3-auth">Auth e bucket</h2>
+        <p>Header: <code>API-Key: nc_...</code>. Bucket na URL = tenant (ex.: <code>/api/s3/acme/...</code> para tenant slug <code>acme</code>). Key = caminho do objeto (ex.: <code>imagens/foto.png</code>).</p>
+      </section>
+
+      <section class="doc-section" id="s3-put">
+        <h2 id="s3-put">PutObject</h2>
+        <p><span class="badge badge-put">PUT</span> <code>{BASE}/api/s3/{bucket}/{key}</code> — corpo = conteúdo binário.</p>
+        <pre><code>curl -X PUT "https://seu-dominio.com/api/s3/acme/imagens/foto.png" \
+  -H "API-Key: nc_sua_chave" \
+  -H "Content-Type: image/png" \
+  --data-binary @foto.png</code></pre>
+        <p>Sucesso: 200, header <code>ETag</code>. Erros: 400 EntityTooLarge, 403 AccessDenied.</p>
+      </section>
+
+      <section class="doc-section" id="s3-get">
+        <h2 id="s3-get">GetObject</h2>
+        <p><span class="badge badge-get">GET</span> <code>{BASE}/api/s3/{bucket}/{key}</code></p>
+        <pre><code>curl -H "API-Key: nc_sua_chave" \
+  "https://seu-dominio.com/api/s3/acme/imagens/foto.png" -o foto.png</code></pre>
+      </section>
+
+      <section class="doc-section" id="s3-head">
+        <h2 id="s3-head">HeadObject</h2>
+        <p><span class="badge badge-head">HEAD</span> — mesmos path e header; retorna só headers (Content-Type, Content-Length, ETag, Last-Modified).</p>
+      </section>
+
+      <section class="doc-section" id="s3-delete">
+        <h2 id="s3-delete">DeleteObject</h2>
+        <p><span class="badge badge-delete">DELETE</span> <code>{BASE}/api/s3/{bucket}/{key}</code> — 204 sucesso, 404 NoSuchKey.</p>
+        <pre><code>curl -X DELETE -H "API-Key: nc_sua_chave" \
+  "https://seu-dominio.com/api/s3/acme/imagens/foto.png"</code></pre>
+      </section>
+
+      <section class="doc-section" id="s3-list">
+        <h2 id="s3-list">ListObjectsV2</h2>
+        <p><span class="badge badge-get">GET</span> <code>{BASE}/api/s3/{bucket}?list-type=2&prefix=...&max-keys=...&continuation-token=...</code> — resposta em <strong>XML</strong> (ListBucketResult).</p>
+        <pre><code>curl -H "API-Key: nc_sua_chave" \
+  "https://seu-dominio.com/api/s3/acme?list-type=2&prefix=imagens/&max-keys=100"</code></pre>
+        <p>Parâmetros: <code>list-type=2</code> (obrigatório), <code>prefix</code>, <code>max-keys</code> (1–1000), <code>continuation-token</code> para próxima página.</p>
+      </section>
+
+      <section class="doc-section" id="s3-erros">
+        <h2 id="s3-erros">Erros (XML)</h2>
+        <p>Resposta de erro em XML: <code>&lt;Error&gt;&lt;Code&gt;NoSuchKey&lt;/Code&gt;&lt;Message&gt;...&lt;/Message&gt;&lt;/Error&gt;</code>. Códigos: AccessDenied (403), NoSuchKey (404), EntityTooLarge (400), InternalError (500).</p>
+      </section>
+
+      <section class="doc-section" id="s3-exemplos">
+        <h2 id="s3-exemplos">Resumo S3</h2>
+        <p>Base: <code>{BASE}/api/s3/{bucket}/{key}</code> ou <code>?list-type=2&...</code>. Auth: <code>API-Key</code>. PutObject=PUT, GetObject=GET, HeadObject=HEAD, DeleteObject=DELETE, ListObjectsV2=GET com query. PHP/Python/Node/Go: mesmo header e métodos.</p>
+      </section>
+
+      <!-- Markdown para IA / parsers -->
+      <section class="markdown-for-ai" id="markdown-for-ai" aria-label="Markdown para IA">
+        <details open>
+          <summary>Markdown para IAs e parsers</summary>
+          <p style="font-size:0.85rem;color:var(--muted);">A documentação completa em Markdown está nos arquivos <strong>API.md</strong> e <strong>S3-COMPATIBLE.md</strong> nesta mesma pasta (<code>app/docs/</code>). Use esses arquivos para parsing ou contexto em IA. Resumo em markdown abaixo.</p>
+          <pre id="markdown-api-full"># NanoCDN – API (resumo Markdown)
+
+## API REST
+- **Auth:** header `API-Key: nc_...` em todas as requisições (exceto /api/health e /f/).
+- **Upload:** POST {BASE}/api/upload, multipart/form-data, campo `file`. Resposta 201: file_uuid, variants[].url.
+- **Listar:** GET {BASE}/api/files?limit=20&offset=0. Resposta: total, files[] com urls.
+- **Detalhes:** GET {BASE}/api/files/{file_uuid}.
+- **Excluir:** DELETE {BASE}/api/files/{file_uuid}. Resposta 200: {"ok":true}.
+- **URL pública:** {BASE}/f/{tenant_uuid}/{file_uuid}/{filename} — sem auth, cache ETag/304.
+- **Códigos:** 200, 201, 304, 400, 401, 403, 404, 500. Erros em JSON: {"error":"...","code":N}.
+
+## API S3-compatible
+- **Auth:** mesmo header API-Key. **Bucket** = tenant (slug ou UUID). **Key** = path do objeto.
+- **PutObject:** PUT {BASE}/api/s3/{bucket}/{key} — body binário. 200 + ETag.
+- **GetObject:** GET {BASE}/api/s3/{bucket}/{key}. HeadObject: HEAD mesmo path.
+- **DeleteObject:** DELETE mesmo path. 204 sucesso, 404 NoSuchKey.
+- **ListObjectsV2:** GET {BASE}/api/s3/{bucket}?list-type=2&prefix=&max-keys=&continuation-token= — resposta XML ListBucketResult.
+- **Erros:** XML com Error/Code (AccessDenied, NoSuchKey, EntityTooLarge, InternalError).
+- Documentação completa: ver API.md e S3-COMPATIBLE.md em app/docs/.</pre>
+        </details>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

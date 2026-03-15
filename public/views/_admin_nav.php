@@ -4,13 +4,19 @@ if (\NanoCDN\Auth::check()) {
 ?>
 <header class="admin-header">
     <div class="admin-header-inner">
-        <a href="<?= $navBase ?>/admin" class="admin-logo">NanoCDN</a>
+        <a href="<?= $navBase ?>/admin" class="admin-logo"><?php
+            $logoUrl = \NanoCDN\app_logo_url();
+            if ($logoUrl !== ''): ?><img src="<?= htmlspecialchars($logoUrl) ?>" alt="<?= htmlspecialchars(\NanoCDN\app_name()) ?>" class="admin-logo-img"><?php
+            else: ?><?= htmlspecialchars(\NanoCDN\app_name()) ?><?php endif; ?></a>
         <nav class="admin-nav">
             <a href="<?= $navBase ?>/admin">Tenants</a>
             <a href="<?= $navBase ?>/admin/tenants/new">Criar tenant</a>
             <a href="<?= $navBase ?>/admin/check">Checker</a>
             <a href="<?= $navBase ?>/admin/conversion">Conversão</a>
             <a href="<?= $navBase ?>/admin/review">Revisão</a>
+            <a href="<?= $navBase ?>/admin/settings">Configurações</a>
+            <a href="<?= $navBase ?>/admin/users">Usuários</a>
+            <a href="<?= $navBase ?>/admin/invites">Convites</a>
             <a href="<?= $navBase ?>/admin/password">Senha</a>
             <a href="<?= $navBase ?>/admin/update">Atualizar</a>
             <a href="<?= $navBase ?>/admin/migrations">Migrações</a>

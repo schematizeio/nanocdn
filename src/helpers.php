@@ -72,3 +72,40 @@ function redirect(string $url, int $code = 302): void
     header('Location: ' . $url, true, $code);
     exit;
 }
+
+/** Nome do painel (whitelabel). Lê de settings, depois config; vazio = "Painel". */
+function app_name(): string
+{
+    try {
+        $v = Settings::get('app_name');
+        if ($v !== null && $v !== '') {
+            return $v;
+        }
+    } catch (\Throwable $e) {
+    }
+    $cfg = config();
+    $v = (string) ($cfg['app_name'] ?? '');
+    return $v !== '' ? $v : 'Painel';
+}
+
+/** URL do logo do painel (whitelabel). Vazio = sem logo customizado. */
+function app_logo_url(): string
+{
+    try {
+        $v = Settings::get('app_logo_url');
+        return $v !== null ? $v : '';
+    } catch (\Throwable $e) {
+        return '';
+    }
+}
+
+/** Permite cadastro público de usuários (sem convite). */
+function allow_registration(): bool
+{
+    try {
+        $v = Settings::get('allow_registration');
+        return $v === '1' || $v === 'true';
+    } catch (\Throwable $e) {
+        return false;
+    }
+}

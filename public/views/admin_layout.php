@@ -7,14 +7,14 @@ $adminBase = \NanoCDN\base_url();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($adminTitle) ?> - NanoCDN</title>
+    <title><?= htmlspecialchars($adminTitle) ?> - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
     <?php require __DIR__ . '/_admin_head.php'; ?>
     <link rel="stylesheet" href="<?= $adminBase ?>/admin.css">
 </head>
 <body class="admin">
     <header class="admin-header">
         <div class="admin-header-inner">
-            <a href="<?= $adminBase ?>/admin" class="admin-logo">NanoCDN</a>
+            <a href="<?= $adminBase ?>/admin" class="admin-logo"><?php $logoUrl = \NanoCDN\app_logo_url(); if ($logoUrl !== ''): ?><img src="<?= htmlspecialchars($logoUrl) ?>" alt="<?= htmlspecialchars(\NanoCDN\app_name()) ?>" class="admin-logo-img"><?php else: ?><?= htmlspecialchars(\NanoCDN\app_name()) ?><?php endif; ?></a>
             <nav class="admin-nav">
                 <a href="<?= $adminBase ?>/admin">Tenants</a>
                 <a href="<?= $adminBase ?>/admin/tenants/new">Criar tenant</a>

@@ -7,7 +7,7 @@ $base = \NanoCDN\base_url();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revisão do sistema - NanoCDN</title>
+    <title>Revisão do sistema - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
     <?php require __DIR__ . '/_admin_head.php'; ?>
 </head>
 <body class="admin">
@@ -16,7 +16,7 @@ $base = \NanoCDN\base_url();
 
     <div class="admin-card">
         <h1>Revisão do sistema</h1>
-        <p>Visão geral do ambiente e da instalação NanoCDN.</p>
+        <p>Visão geral do ambiente e da instalação <?= htmlspecialchars(\NanoCDN\app_name()) ?>.</p>
     </div>
 
     <div class="admin-card">
