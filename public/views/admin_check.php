@@ -1,7 +1,4 @@
-<?php
-$caps = $caps ?? \NanoCDN\ImageConverter::getServerCapabilities();
-$base = \NanoCDN\base_url();
-?>
+<?php $caps = $caps ?? \NanoCDN\ImageConverter::getServerCapabilities(); $base = \NanoCDN\base_url(); ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,24 +7,27 @@ $base = \NanoCDN\base_url();
     <title>Checker - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
     <?php require __DIR__ . '/_admin_head.php'; ?>
 </head>
-<body class="admin">
+<body class="bg-slate-100 min-h-screen text-slate-800">
     <?php require __DIR__ . '/_admin_nav.php'; ?>
-    <p class="admin-breadcrumb"><a href="<?= $base ?>/admin">Tenants</a> → Checker</p>
-    <div class="admin-card">
-        <h1>Verificação do servidor</h1>
-        <table class="admin-table">
-            <tr><th>Recurso</th><th>Status</th></tr>
-            <tr><td>PHP</td><td><?= htmlspecialchars($phpVersion ?? PHP_VERSION) ?></td></tr>
-            <tr><td>Banco de dados</td><td class="<?= !empty($dbOk) ? 'ok' : 'no' ?>"><?= !empty($dbOk) ? 'Conectado' : 'Erro de conexão' ?></td></tr>
-            <tr><td>Storage gravável</td><td class="<?= !empty($storageWritable) ? 'ok' : 'no' ?>"><?= !empty($storageWritable) ? 'Sim' : 'Não' ?></td></tr>
-            <tr><td colspan="2" style="padding-top:0.5rem;"><strong>Conversão de imagens</strong></td></tr>
-            <tr><td>GD</td><td><?= $caps['gd'] ? 'Sim' : 'Não' ?></td></tr>
-            <tr><td>Imagick</td><td><?= $caps['imagick'] ? 'Sim' : 'Não' ?></td></tr>
-            <tr><td>WebP</td><td><?= $caps['webp'] ? 'Sim' : 'Não' ?></td></tr>
-            <tr><td>AVIF</td><td><?= $caps['avif'] ? 'Sim' : 'Não' ?></td></tr>
-            <tr><td>Driver</td><td><?= htmlspecialchars($caps['driver'] ?? 'Nenhum') ?></td></tr>
-        </table>
-        <?php if (!empty($appVersion)): ?><p style="margin-top:1rem;font-size:0.85rem;color:#999;">NanoCDN <?= htmlspecialchars($appVersion) ?></p><?php endif; ?>
+    <p class="text-sm text-slate-500 mb-4"><a href="<?= $base ?>/admin" class="text-blue-600 hover:underline">Tenants</a> → Checker</p>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+        <h1 class="text-xl font-semibold text-slate-800 mb-4">Verificação do servidor</h1>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm border-collapse">
+                <tbody class="border border-slate-200">
+                    <tr class="border-b border-slate-200"><td class="py-3 px-3 font-medium text-slate-600 bg-slate-50">PHP</td><td class="py-3 px-3"><?= htmlspecialchars($phpVersion ?? PHP_VERSION) ?></td></tr>
+                    <tr class="border-b border-slate-200"><td class="py-3 px-3 font-medium text-slate-600 bg-slate-50">Banco de dados</td><td class="py-3 px-3 <?= !empty($dbOk) ? 'text-green-600' : 'text-red-600' ?>"><?= !empty($dbOk) ? 'Conectado' : 'Erro de conexão' ?></td></tr>
+                    <tr class="border-b border-slate-200"><td class="py-3 px-3 font-medium text-slate-600 bg-slate-50">Storage gravável</td><td class="py-3 px-3 <?= !empty($storageWritable) ? 'text-green-600' : 'text-red-600' ?>"><?= !empty($storageWritable) ? 'Sim' : 'Não' ?></td></tr>
+                    <tr class="border-b border-slate-200"><td colspan="2" class="py-2 px-3 font-semibold text-slate-700 bg-slate-100">Conversão de imagens</td></tr>
+                    <tr class="border-b border-slate-200"><td class="py-3 px-3 font-medium text-slate-600 bg-slate-50">GD</td><td class="py-3 px-3"><?= $caps['gd'] ? 'Sim' : 'Não' ?></td></tr>
+                    <tr class="border-b border-slate-200"><td class="py-3 px-3 font-medium text-slate-600 bg-slate-50">Imagick</td><td class="py-3 px-3"><?= $caps['imagick'] ? 'Sim' : 'Não' ?></td></tr>
+                    <tr class="border-b border-slate-200"><td class="py-3 px-3 font-medium text-slate-600 bg-slate-50">WebP</td><td class="py-3 px-3"><?= $caps['webp'] ? 'Sim' : 'Não' ?></td></tr>
+                    <tr class="border-b border-slate-200"><td class="py-3 px-3 font-medium text-slate-600 bg-slate-50">AVIF</td><td class="py-3 px-3"><?= $caps['avif'] ? 'Sim' : 'Não' ?></td></tr>
+                    <tr><td class="py-3 px-3 font-medium text-slate-600 bg-slate-50">Driver</td><td class="py-3 px-3"><?= htmlspecialchars($caps['driver'] ?? 'Nenhum') ?></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <?php if (!empty($appVersion)): ?><p class="mt-4 text-sm text-slate-500"><?= htmlspecialchars(\NanoCDN\app_name()) ?> <?= htmlspecialchars($appVersion) ?></p><?php endif; ?>
     </div>
     <?php require __DIR__ . '/_admin_footer.php'; ?>
 </body>

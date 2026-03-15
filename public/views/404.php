@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página não encontrada - <?= htmlspecialchars(\NanoCDN\app_name()) ?></title>
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: system-ui, sans-serif; max-width: 480px; margin: 4rem auto; padding: 1rem; text-align: center; }
-        h1 { font-size: 1.25rem; color: #666; }
-        a { color: #06c; }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>404 – Página não encontrada</h1>
-    <p><a href="<?= \NanoCDN\base_url('admin') ?>">Ir para o painel</a></p>
+<body class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <div class="text-center">
+        <h1 class="text-xl font-semibold text-slate-600 mb-2">404 – Página não encontrada</h1>
+        <p><a href="<?= \NanoCDN\base_url('admin') ?>" class="text-blue-600 hover:underline font-medium">Ir para o painel</a></p>
+    </div>
 </body>
 </html>
