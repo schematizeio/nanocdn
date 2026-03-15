@@ -4,8 +4,12 @@
  * Autenticação: header API-Key: nc_...
  */
 
+if (!function_exists('NanoCDN\json_response')) {
+    require_once dirname(__DIR__) . '/src/helpers.php';
+}
+
 use NanoCDN\FileManager;
-use NanoCDN\json_response;
+use function NanoCDN\json_response;
 use NanoCDN\Tenant;
 
 $cfg = \NanoCDN\config();

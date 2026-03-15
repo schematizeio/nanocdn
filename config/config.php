@@ -17,7 +17,7 @@ if ($envFile) {
 }
 
 return [
-    'version' => '1.0.10',
+    'version' => '1.0.11',
     'app_name' => getenv('NANOCDN_APP_NAME') ?: '', // whitelabel: nome do painel; vazio = configurar em Admin → Configurações
     'env' => getenv('NANOCDN_ENV') ?: 'development',
     'debug' => filter_var(getenv('NANOCDN_DEBUG') ?: true, FILTER_VALIDATE_BOOLEAN),
